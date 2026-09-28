@@ -227,6 +227,19 @@
     grid-template-columns:1fr 1fr;
     gap:10px 18px;
   }
+  .amount-note{
+    grid-template-columns:150px 1fr;
+    align-items:start;
+  }
+  .amount-note label{
+    padding-top:7px;
+  }
+  .field-help{
+    display:block;
+    margin-top:5px;
+    color:var(--muted);
+    font-size:12px;
+  }
 
   .signature{
     display:grid;
@@ -468,6 +481,9 @@
       margin-right:2px;
     }
     .amount-box{padding:8px 10px;margin:6px 0}
+    .amount-note{grid-template-columns:110px 1fr!important;margin-top:5px!important}
+    .amount-note label{padding-top:0!important}
+    .field-help{font-size:8.5pt!important;margin-top:2px!important}
 
     .clause h2{
       break-after:avoid-page;
@@ -627,10 +643,14 @@
           <span class="label">人民币大写：</span>
           <input data-key="payment.uppercase" id="amountUpperInput" type="text" placeholder="例如：陆仟元整">
         </div>
+        <div class="form-row amount-note" style="margin-top:8px">
+          <label>费用说明：</label>
+          <textarea data-key="payment.notes" rows="2" placeholder="例如：本合同总价包含前三年域名、主机及基础技术维护费用；自第4年起续费为1800元/年。第三方服务价格如有调整，按实际续费价格执行。"></textarea>
+        </div>
       </div>
       <ol>
         <li>甲方在合同生效后支付合同总额的 <input class="input-line editable-number" data-key="payment.depositRateText" id="depositRateText" type="number" min="0" max="100" value="50">% 作为首付款；如附件一约定其他付款节点，以附件一为准。</li>
-        <li>项目验收通过（含本合同约定的视为验收通过）后 <input class="input-line editable-number" data-key="terms.balancePayDays" type="number" min="1" value="3"> 个工作日内，甲方应结清尾款。尾款结清后，乙方进行正式上线及完整交付。</li>
+        <li>项目验收通过（含本合同约定的视为验收通过）后 <input class="input-line editable-number" data-key="terms.balancePayDays" type="number" min="1" value="3"> 个工作日内，甲方应结清尾款。尾款结清后，乙方进行正式上线，并按照第八条及附件一约定的后续维护或交付方式执行。</li>
         <li>域名、主机、SSL、付费主题/插件、API、字体、图库等第三方费用，如未计入合同总价，由甲方另行承担。</li>
       </ol>
     </section>
@@ -687,10 +707,12 @@
     <section class="clause">
       <h2>第八条　交付与售后</h2>
       <ol>
-        <li>甲方结清全部应付款项后，乙方根据项目实际情况移交网站后台管理员账号、网站文件/源码、数据库备份，以及双方约定可转移的域名、服务器或第三方账号权限。</li>
-        <li>自验收通过之日起，乙方提供 <input class="input-line editable-number" data-key="project.warrantyDays" type="number" min="0" value="30"> 天免费技术质保，仅处理本合同范围内由乙方制作内容的程序性故障。</li>
-        <li>新增页面/功能、内容更新、SEO运营、第三方服务故障或升级、服务器环境变化、甲方或第三方自行修改造成的问题，不属于免费质保。</li>
-        <li>项目交付完成后，乙方可免费保留最终交付版本备份 <input class="input-line editable-number" data-key="terms.backupDays" type="number" min="0" value="30"> 天；期限届满后乙方无继续保存义务，甲方应自行负责日常备份。</li>
+        <li>本项目后续处理方式分为“乙方持续维护”和“完整技术交付”两种，以附件一所选方式为准。</li>
+        <li>选择“乙方持续维护”时，甲方可正常使用网站后台进行日常内容管理，乙方在约定服务期内负责程序、主题/插件、数据库、服务器环境、必要的数据备份与恢复及基础安全等技术维护；具体服务期限、续费标准及第三方费用以本合同“费用说明”或附件一约定为准。</li>
+        <li>持续维护服务期满，或甲方提前终止维护合作并要求完整技术交付时，在甲方结清全部应付款项及已发生的第三方费用后，乙方应移交网站文件/源码、数据库备份、后台管理员账号，以及双方约定可转移的域名、服务器或第三方账号权限。完整技术交付完成后，除双方另有维护约定外，乙方不再承担后续免费升级、功能优化、数据备份与恢复、网站安全或服务器环境维护义务。</li>
+        <li>如附件一直接选择“完整技术交付”，乙方在甲方结清全部应付款项后按前款约定完成移交。完整交付后，甲方或第三方自行修改程序、数据库、服务器配置、主题/插件等造成的故障、兼容性问题、数据损失或安全问题，由甲方自行承担；乙方后续协助可另行收费。</li>
+        <li>自验收通过之日起，乙方提供 <input class="input-line editable-number" data-key="project.warrantyDays" type="number" min="0" value="30"> 天免费技术质保，仅处理本合同范围内由乙方制作内容本身存在的程序性故障；免费质保不等同于持续维护服务。</li>
+        <li>选择“乙方持续维护”时，由乙方按约定及实际服务器条件进行必要备份；完成“完整技术交付”后，日常备份责任转由甲方承担。乙方可免费保留最终交付版本备份 <input class="input-line editable-number" data-key="terms.backupDays" type="number" min="0" value="30"> 天，该备份不构成持续备份或恢复义务；期限届满后乙方无继续保存义务。</li>
       </ol>
     </section>
 
@@ -739,6 +761,13 @@
           ￥ <input data-key="payment.total2" type="number" min="0" step="0.01" style="width:150px"> 元；
           <input data-key="payment.method" type="text" placeholder="例如：50%首款 + 50%尾款" style="width:55%">
         </td></tr>
+        <tr><th>后续维护方式</th><td>
+          <select data-key="maintenance.mode" style="max-width:260px">
+            <option value="乙方持续维护">乙方持续维护</option>
+            <option value="完整技术交付">完整技术交付</option>
+          </select>
+          <span class="field-help">持续维护到期或提前终止后，费用结清即可要求完整技术交付。</span>
+        </td></tr>
       </table>
 
       <h3 class="section-title">页面 / 栏目清单</h3>
@@ -768,7 +797,7 @@
       <div class="form-row"><label>其他功能</label><input data-key="features.other" type="text" placeholder="如有，请详细说明；未填写视为无"></div>
 
       <h3 class="section-title">资料、第三方费用及特别约定</h3>
-      <textarea data-key="special.notes" rows="3" placeholder="可填写：资料由谁提供、首批录入数量、域名/主机/插件/API费用、特殊交付要求、额外维护服务等"></textarea>
+      <textarea data-key="special.notes" rows="3" placeholder="可填写：资料由谁提供、首批录入数量、特殊第三方费用、额外交付要求及其他本项目特有约定"></textarea>
 
       <p class="note" style="margin:10px 0 0;">说明：基础 SEO 仅指网站技术层面的基础配置，不保证搜索引擎收录时间、关键词排名、访问量或询盘数量。</p>
 
@@ -1043,7 +1072,8 @@
       'terms.overdueDays':'7',
       'terms.balancePayDays':'3',
       'terms.backupDays':'30',
-      'payment.method':'50%首款 + 50%尾款'
+      'payment.method':'50%首款 + 50%尾款',
+      'maintenance.mode':'乙方持续维护'
     };
     Object.entries(defaults).forEach(([k,v])=>{
       const el=document.querySelector(`[data-key="${k}"]`);
