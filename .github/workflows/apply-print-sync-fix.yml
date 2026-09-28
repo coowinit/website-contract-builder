@@ -1,0 +1,120 @@
+name: Apply print sync fix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-print-sync-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message == 'chore: apply print sync fix'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch print synchronization
+        shell: python
+        run: |
+          from pathlib import Path
+
+          sync_fn = r'''  // 打印前把当前表单状态同步到元素默认值。
+            // 某些浏览器生成 PDF 时会读取 textarea/defaultValue 等初始状态，
+            // 会导致刚修改的“特别约定”等多行文本仍打印旧内容。
+            function syncFormStateForPrint(){
+              document.querySelectorAll('textarea[data-key]').forEach(el=>{
+                el.defaultValue=el.value;
+                el.textContent=el.value;
+                autoGrow(el);
+              });
+              document.querySelectorAll('input[data-key]').forEach(el=>{
+                if(el.type==='checkbox'){
+                  el.defaultChecked=el.checked;
+                  if(el.checked) el.setAttribute('checked','checked');
+                  else el.removeAttribute('checked');
+                }else{
+                  el.defaultValue=el.value;
+                  el.setAttribute('value',el.value);
+                }
+              });
+              document.querySelectorAll('select[data-key]').forEach(el=>{
+                [...el.options].forEach(option=>{
+                  const selected=option.value===el.value;
+                  option.defaultSelected=selected;
+                  if(selected) option.setAttribute('selected','selected');
+                  else option.removeAttribute('selected');
+                });
+              });
+            }
+
+          '''
+
+          old_print = r'''  document.getElementById('printBtn').addEventListener('click',()=>{
+              const wasPreview=app.classList.contains('preview-mode');
+              app.classList.add('preview-mode');
+              setTimeout(()=>{
+                window.print();
+                if(!wasPreview) app.classList.remove('preview-mode');
+              },80);
+            });'''
+
+          new_static_print = r'''  document.getElementById('printBtn').addEventListener('click',()=>{
+              clearTimeout(saveTimer);
+              save();
+              syncFormStateForPrint();
+              autoGrowAll();
+
+              const wasPreview=app.classList.contains('preview-mode');
+              app.classList.add('preview-mode');
+              setTimeout(()=>{
+                window.print();
+                if(!wasPreview) app.classList.remove('preview-mode');
+              },100);
+            });'''
+
+          new_sqlite_print = r'''  document.getElementById('printBtn').addEventListener('click',async ()=>{
+              clearTimeout(localSaveTimer);
+              clearTimeout(serverSaveTimer);
+              saveLocalNow();
+              await saveServer(false);
+
+              syncFormStateForPrint();
+              autoGrowAll();
+
+              const wasPreview=app.classList.contains('preview-mode');
+              app.classList.add('preview-mode');
+              setTimeout(()=>{
+                window.print();
+                if(!wasPreview) app.classList.remove('preview-mode');
+              },100);
+            });'''
+
+          for file_name, replacement in [('index.html', new_static_print), ('sqlite/index.php', new_sqlite_print)]:
+              p = Path(file_name)
+              text = p.read_text(encoding='utf-8')
+
+              if 'function syncFormStateForPrint()' not in text:
+                  anchor = "  function autoGrow(el){"
+                  if anchor not in text:
+                      raise SystemExit(f'{file_name}: autoGrow anchor not found')
+                  text = text.replace(anchor, sync_fn + anchor, 1)
+
+              if old_print in text:
+                  text = text.replace(old_print, replacement, 1)
+              elif replacement not in text:
+                  raise SystemExit(f'{file_name}: print handler not found')
+
+              p.write_text(text, encoding='utf-8')
+
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html sqlite/index.php
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: 打印前同步当前表单数据"
+          git push
