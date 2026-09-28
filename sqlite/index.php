@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网站建设合同生成器</title>
+<style>
+  :root{
+    --bg:#f4f5f7;
+    --paper:#fff;
+    --text:#202124;
+    --muted:#6b7280;
+    --line:#d8dde4;
+    --soft:#f7f8fa;
+    --strong:#111827;
+    --accent:#3559e0;
+    --shadow:0 14px 34px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",Arial,sans-serif;
+    line-height:1.75;
+  }
+  .app{
+    max-width:1400px;
+    margin:0 auto;
+    padding:18px 20px 50px;
+  }
+  .toolbar{
+    position:sticky;
+    top:0;
+    z-index:50;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:12px 14px;
+    margin-bottom:20px;
+    background:rgba(255,255,255,.96);
+    border:1px solid var(--line);
+    box-shadow:0 8px 24px rgba(0,0,0,.05);
+    backdrop-filter:blur(10px);
+  }
+  .toolbar-title{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:0;
+  }
+  .toolbar-title h1{
+    margin:0;
+    font-size:17px;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .save-state{
+    color:var(--muted);
+    font-size:12px;
+    white-space:nowrap;
+  }
+  .toolbar-actions{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    gap:8px;
+  }
+  button,.file-btn{
+    appearance:none;
+    border:1px solid var(--line);
+    background:#fff;
+    color:#222;
+    padding:8px 12px;
+    font:inherit;
+    font-size:13px;
+    line-height:1.2;
+    cursor:pointer;
+    transition:.15s ease;
+  }
+  button:hover,.file-btn:hover{border-color:#aeb6c2;background:#fafafa}
+  button.primary{background:var(--strong);color:#fff;border-color:var(--strong)}
+  button.primary:hover{opacity:.9}
+  button.danger{color:#b42318}
+  .file-btn input{display:none}
+
+  .paper{
+    width:100%;
+    max-width:980px;
+    margin:0 auto;
+    background:var(--paper);
+    box-shadow:none;
+    border:1px solid #e5e7eb;
+    padding:46px 58px 56px;
+  }
+
+  .doc-title{
+    margin:0;
+    text-align:center;
+    font-family:"SimSun","Songti SC","STSong",serif;
+    font-size:29px;
+    letter-spacing:.16em;
+    font-weight:700;
+  }
+  .doc-subtitle{
+    margin:5px 0 26px;
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .contract-meta{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 24px;
+    margin:0 0 22px;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--line);
+  }
+  .meta-item,.inline-field{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-width:0;
+  }
+  .contract-meta .full-row{
+    grid-column:1 / -1;
+  }
+  .label{
+    flex:none;
+    color:#374151;
+    font-weight:600;
+  }
+
+  input[type="text"],input[type="tel"],input[type="email"],input[type="number"],input[type="date"],
+  select,textarea{
+    width:100%;
+    min-width:0;
+    color:var(--text);
+    background:#fafbfc;
+    border:1px solid #d9dee5;
+    border-radius:3px;
+    padding:6px 8px;
+    font:inherit;
+    font-size:14px;
+    outline:none;
+  }
+  input:focus,select:focus,textarea:focus{
+    border-color:#96a5d6;
+    background:#fff;
+    box-shadow:0 0 0 2px rgba(53,89,224,.08);
+  }
+  textarea{
+    resize:vertical;
+    min-height:42px;
+  }
+  .input-line{
+    background:transparent!important;
+    border:0!important;
+    border-bottom:1px solid #9aa2ad!important;
+    border-radius:0!important;
+    padding:2px 4px!important;
+    box-shadow:none!important;
+  }
+  .party-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin:18px 0 24px;
+  }
+  .party-card{
+    border:1px solid var(--line);
+    padding:14px 16px 12px;
+  }
+  .party-card h3{
+    margin:0 0 10px;
+    font-size:15px;
+  }
+  .form-row{
+    display:grid;
+    grid-template-columns:150px 1fr;
+    gap:10px;
+    align-items:center;
+    margin:6px 0;
+  }
+
+  .intro{
+    text-indent:2em;
+    margin:0 0 18px;
+  }
+  .clause{
+    margin:24px 0 0;
+  }
+  .clause h2{
+    margin:0 0 9px;
+    padding-bottom:6px;
+    border-bottom:1px solid #e6e8eb;
+    font-family:"SimSun","Songti SC","STSong",serif;
+    font-size:18px;
+    font-weight:700;
+  }
+  .clause ol{
+    margin:0;
+    padding-left:1.5em;
+  }
+  .clause li{
+    margin:7px 0;
+    padding-left:.25em;
+  }
+  .editable-number{
+    display:inline-block;
+    width:72px!important;
+    margin:0 3px;
+    text-align:center;
+    vertical-align:baseline;
+  }
+
+  .amount-box{
+    border:1px solid var(--line);
+    background:var(--soft);
+    padding:12px 14px;
+    margin:10px 0;
+  }
+  .amount-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 18px;
+  }
+
+  .signature{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:38px;
+    margin-top:30px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+  }
+  .sign-box{
+    min-height:180px;
+  }
+  .sign-box h3{
+    margin:0 0 14px;
+    font-size:15px;
+  }
+  .sign-line{
+    display:grid;
+    grid-template-columns:125px 1fr;
+    gap:8px;
+    align-items:center;
+    margin:9px 0;
+  }
+
+  .attachment{
+    margin-top:52px;
+    padding-top:34px;
+    border-top:2px solid #222;
+  }
+  .attachment-title{
+    text-align:center;
+    font-family:"SimSun","Songti SC","STSong",serif;
+    font-size:24px;
+    margin:0 0 24px;
+  }
+  .section-title{
+    margin:24px 0 10px;
+    font-size:17px;
+    font-weight:700;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed;
+    font-size:14px;
+  }
+  th,td{
+    border:1px solid #aeb4bc;
+    padding:8px 9px;
+    vertical-align:middle;
+    word-break:break-word;
+  }
+  th{
+    background:#f5f6f8;
+    font-weight:700;
+    text-align:center;
+  }
+  td input,td select,td textarea{
+    border:0;
+    background:transparent;
+    padding:2px 3px;
+  }
+  .project-info th{width:22%}
+  .project-info td{width:78%}
+  .page-table th:nth-child(1){width:8%}
+  .page-table th:nth-child(2){width:24%}
+  .page-table th:nth-child(3){width:46%}
+  .page-table th:nth-child(4){width:22%}
+
+  .checks{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:6px 10px;
+    margin:8px 0 12px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    background:#fafbfc;
+  }
+  .check{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    min-height:28px;
+    padding:2px 4px;
+  }
+  .check input{width:auto}
+  .note{
+    color:var(--muted);
+    font-size:12px;
+  }
+  .attachment-sign{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    margin-top:10px;
+  }
+
+  .attachment textarea{
+    min-height:42px;
+  }
+  .attachment .note{
+    margin-top:6px!important;
+    margin-bottom:4px!important;
+  }
+
+  .preview-mode .toolbar .edit-only{display:none!important}
+  .preview-mode input,
+  .preview-mode textarea,
+  .preview-mode select{
+    pointer-events:none;
+    background:transparent!important;
+    border-color:transparent!important;
+    box-shadow:none!important;
+  }
+  .preview-mode .input-line{
+    border-bottom-color:#888!important;
+  }
+  .preview-mode .checks input{pointer-events:none}
+  .preview-mode .paper{box-shadow:none}
+
+  .screen-tip{
+    max-width:980px;
+    margin:0 auto 12px;
+    color:var(--muted);
+    font-size:12px;
+    text-align:right;
+  }
+
+  @media (max-width:900px){
+    .app{padding:10px 10px 36px}
+    .toolbar{position:static;align-items:flex-start;flex-direction:column}
+    .toolbar-actions{justify-content:flex-start}
+    .paper{padding:30px 24px}
+    .party-grid,.signature,.attachment-sign,.amount-grid,.contract-meta{grid-template-columns:1fr}
+    .checks{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:600px){
+    .paper{padding:24px 16px}
+    .doc-title{font-size:24px}
+    .checks{grid-template-columns:1fr}
+    .form-row{grid-template-columns:1fr;gap:4px}
+    table{font-size:13px}
+    th,td{padding:6px}
+    .page-table{table-layout:auto}
+  }
+
+  @page{
+    size:A4;
+    margin:15mm 16mm 16mm;
+  }
+  @media print{
+    html,body{background:#fff}
+    *,*::before,*::after{
+      box-shadow:none!important;
+      -webkit-box-shadow:none!important;
+      text-shadow:none!important;
+      filter:none!important;
+      background-image:none!important;
+    }
+    body{font-size:9.6pt;line-height:1.48}
+    .app{max-width:none;padding:0;margin:0}
+    .toolbar,.screen-tip,.no-print{display:none!important}
+    .paper{
+      max-width:none;
+      width:auto;
+      margin:0;
+      padding:0;
+      border:0;
+      box-shadow:none;
+    }
+    .doc-title{font-size:18pt}
+    .doc-subtitle{font-size:9pt;margin-bottom:16px}
+    .clause{margin-top:10px}
+    .clause h2{font-size:11.5pt;margin-bottom:3px;padding-bottom:3px}
+    .clause li{margin:2px 0}
+    input,textarea,select{
+      border:0!important;
+      box-shadow:none!important;
+      background:transparent!important;
+      padding:0!important;
+      color:#000!important;
+      -webkit-appearance:none;
+      appearance:none;
+    }
+    input::-webkit-calendar-picker-indicator,
+    input::-webkit-inner-spin-button,
+    input::-webkit-outer-spin-button{
+      display:none!important;
+      -webkit-appearance:none!important;
+    }
+    .input-line{border-bottom:1px solid #777!important}
+    textarea{resize:none;overflow:visible}
+    .party-card,.amount-box{break-inside:avoid}
+    .party-grid,.signature,.attachment-sign{break-inside:avoid}
+    .attachment{break-before:page;margin-top:0;padding-top:0;border-top:0}
+    .party-grid{margin:10px 0 14px;gap:12px}
+    .party-card{padding:9px 11px 7px}
+    .form-row{margin:3px 0}
+    .contract-meta{margin-bottom:12px;padding-bottom:10px}
+    .signature{margin-top:18px;padding-top:10px;gap:24px}
+    .sign-box{min-height:125px}
+    .sign-line{margin:5px 0}
+    .section-title{margin:14px 0 6px;font-size:10.5pt}
+    th,td{padding:5px 6px}
+    .attachment-title{font-size:15pt;margin-bottom:14px}
+    .checks{gap:4px 10px;margin:5px 0 7px}
+
+    .attachment .checks{
+      grid-template-columns:repeat(3,1fr)!important;
+      gap:0!important;
+      border:1px solid #bfc4ca;
+      padding:0!important;
+      margin:5px 0 7px!important;
+    }
+    .attachment .check{
+      min-height:28px;
+      padding:4px 8px;
+      border-right:1px solid #d8dce1;
+      border-bottom:1px solid #d8dce1;
+      display:flex;
+      align-items:center;
+      gap:5px;
+    }
+    .attachment .check:nth-child(3n){
+      border-right:0;
+    }
+    .attachment .check:nth-last-child(-n+3){
+      border-bottom:0;
+    }
+    .attachment .check:has(input:not(:checked)){
+      display:none!important;
+    }
+    .attachment .check input[type="checkbox"]{
+      display:none!important;
+    }
+    .attachment .check:has(input:checked)::before{
+      content:"✓";
+      font-weight:700;
+      margin-right:2px;
+    }
+    .amount-box{padding:8px 10px;margin:6px 0}
+
+    .clause h2{
+      break-after:avoid-page;
+      page-break-after:avoid;
+    }
+    .clause h2 + ol,
+    .clause h2 + p{
+      break-before:avoid-page;
+      page-break-before:avoid;
+    }
+    .clause li{
+      orphans:2;
+      widows:2;
+    }
+    .signature .sign-line{
+      grid-template-columns:125px 1fr;
+    }
+    .attachment-sign{
+      margin-top:12px;
+      gap:24px;
+    }
+    .attachment-sign .sign-line{
+      margin:3px 0;
+      grid-template-columns:85px 1fr;
+    }
+    .attachment p{
+      margin-top:6px!important;
+      margin-bottom:4px!important;
+    }
+    .attachment textarea{
+      height:auto!important;
+      min-height:0!important;
+      line-height:1.35!important;
+    }
+    .attachment .note{
+      margin-top:4px!important;
+      margin-bottom:3px!important;
+    }
+    .attachment-sign{
+      margin-top:6px!important;
+      gap:18px!important;
+    }
+    .attachment-sign .sign-line{
+      margin:2px 0!important;
+    }
+
+    .attachment-sign,
+    .attachment-sign *,
+    .attachment-sign input{
+      background:transparent!important;
+      background-color:transparent!important;
+      box-shadow:none!important;
+      -webkit-box-shadow:none!important;
+    }
+    .paper{
+      border-color:#e2e2e2;
+    }
+    table{break-inside:auto}
+    tr{break-inside:avoid;break-after:auto}
+    thead{display:table-header-group}
+    .page-table input{min-width:0}
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="toolbar no-print">
+    <div class="toolbar-title">
+      <h1>网站建设合同生成器</h1>
+      <span class="save-state" id="saveState">正在读取服务器数据…</span>
+    </div>
+    <div class="toolbar-actions">
+      <button type="button" id="saveServer" class="primary edit-only">保存</button>
+      <button type="button" id="togglePreview">预览模式</button>
+      <button type="button" id="printBtn">打印 / 保存 PDF</button>
+      <button type="button" id="newContract" class="edit-only">清空当前合同</button>
+      <button type="button" id="exportJson" class="edit-only">导出 JSON</button>
+      <label class="file-btn edit-only">导入 JSON<input type="file" id="importJson" accept=".json,application/json"></label>
+    </div>
+  </div>
+
+  <div class="screen-tip no-print">当前合同以 SQLite 保存到服务器，浏览器 LocalStorage 作为临时保护；JSON 导出仅作为备用。</div>
+
+  <main class="paper" id="contract">
+    <h1 class="doc-title">网站建设合同</h1>
+
+    <div class="contract-meta">
+      <div class="meta-item"><span class="label">合同编号：</span><input class="input-line" data-key="meta.contractNo" type="text"></div>
+      <div class="meta-item"><span class="label">签订日期：</span><input class="input-line" data-key="meta.signDate" type="date"></div>
+      <div class="meta-item full-row"><span class="label">项目名称：</span><input class="input-line" data-key="project.name" type="text"></div>
+    </div>
+
+    <div class="party-grid">
+      <section class="party-card">
+        <h3>甲方（委托方）</h3>
+        <div class="form-row">
+          <label>主体类型</label>
+          <select data-key="partyA.type">
+            <option value="">请选择</option>
+            <option>个人</option>
+            <option>公司</option>
+            <option>其他组织</option>
+          </select>
+        </div>
+        <div class="form-row"><label>名称 / 姓名</label><input data-key="partyA.name" type="text"></div>
+        <div class="form-row"><label>证件 / 信用代码</label><input data-key="partyA.idNo" type="text" placeholder="身份证号或统一社会信用代码"></div>
+        <div class="form-row"><label>联系人 / 负责人</label><input data-key="partyA.contact" type="text"></div>
+        <div class="form-row"><label>联系电话</label><input data-key="partyA.phone" type="tel"></div>
+        <div class="form-row"><label>微信 / 其他联系方式</label><input data-key="partyA.wechat" type="text"></div>
+        <div class="form-row"><label>邮箱</label><input data-key="partyA.email" type="email"></div>
+        <div class="form-row"><label>地址</label><input data-key="partyA.address" type="text"></div>
+      </section>
+      <section class="party-card">
+        <h3>乙方（承接方）</h3>
+        <div class="form-row">
+          <label>主体类型</label>
+          <select data-key="partyB.type">
+            <option value="">请选择</option>
+            <option>个人</option>
+            <option>公司</option>
+            <option>其他组织</option>
+          </select>
+        </div>
+        <div class="form-row"><label>名称 / 姓名</label><input data-key="partyB.name" type="text"></div>
+        <div class="form-row"><label>证件 / 信用代码</label><input data-key="partyB.idNo" type="text" placeholder="身份证号或统一社会信用代码"></div>
+        <div class="form-row"><label>联系人 / 负责人</label><input data-key="partyB.contact" type="text"></div>
+        <div class="form-row"><label>联系电话</label><input data-key="partyB.phone" type="tel"></div>
+        <div class="form-row"><label>微信 / 其他联系方式</label><input data-key="partyB.wechat" type="text"></div>
+        <div class="form-row"><label>邮箱</label><input data-key="partyB.email" type="email"></div>
+        <div class="form-row"><label>地址</label><input data-key="partyB.address" type="text"></div>
+      </section>
+    </div>
+
+    <p class="intro">鉴于甲方委托乙方提供网站设计、开发、部署及相关技术服务，为明确双方权利义务，双方在平等、自愿、诚实信用的基础上，就本项目达成如下协议。</p>
+
+    <p class="note" style="margin:-6px 0 16px;">双方确认：合同首部所填写的“联系人 / 负责人”为本项目指定联系人。指定联系人通过微信、邮件或双方实际使用的项目沟通工具作出的需求、设计、修改、验收等确认，视为对应一方的项目确认；联系人变更应及时书面通知对方。</p>
+
+    <section class="clause">
+      <h2>第一条　项目内容与范围</h2>
+      <ol>
+        <li>甲方委托乙方建设网站，具体页面、功能、语言、参考网站、域名、服务器、资料录入及其他服务，以《附件一：项目需求与报价确认单》为准。</li>
+        <li>附件一未列明的新增页面、功能、语言版本、数据迁移、内容录入、专项 SEO、第三方接口等，不视为合同默认包含内容。</li>
+        <li>参考网站仅用于风格、结构或功能方向参考，不代表完全复制；涉及第三方版权、商标、代码或其他知识产权的内容不得直接照搬。</li>
+      </ol>
+    </section>
+
+    <section class="clause">
+      <h2>第二条　合同金额与付款</h2>
+      <div class="amount-box">
+        <div class="amount-grid">
+          <div class="inline-field"><span class="label">合同总金额：</span><span>￥</span><input data-key="payment.total" id="totalAmount" type="number" min="0" step="0.01"></div>
+          <div class="inline-field"><span class="label">首付款比例：</span><input data-key="payment.depositRate" id="depositRate" type="number" min="0" max="100" step="1" value="50"><span>%</span></div>
+          <div class="inline-field"><span class="label">首付款：</span><span>￥</span><input data-key="payment.deposit" id="depositAmount" type="text" readonly></div>
+          <div class="inline-field"><span class="label">尾款：</span><span>￥</span><input data-key="payment.balance" id="balanceAmount" type="text" readonly></div>
+        </div>
+        <div class="inline-field" style="margin-top:8px">
+          <span class="label">人民币大写：</span>
+          <input data-key="payment.uppercase" id="amountUpperInput" type="text" placeholder="例如：陆仟元整">
+        </div>
+      </div>
+      <ol>
+        <li>甲方在合同生效后支付合同总额的 <input class="input-line editable-number" data-key="payment.depositRateText" id="depositRateText" type="number" min="0" max="100" value="50">% 作为首付款；如附件一约定其他付款节点，以附件一为准。</li>
+        <li>项目验收通过（含本合同约定的视为验收通过）后 <input class="input-line editable-number" data-key="terms.balancePayDays" type="number" min="1" value="3"> 个工作日内，甲方应结清尾款。尾款结清后，乙方进行正式上线及完整交付。</li>
+        <li>域名、主机、SSL、付费主题/插件、API、字体、图库等第三方费用，如未计入合同总价，由甲方另行承担。</li>
+      </ol>
+    </section>
+
+    <section class="clause">
+      <h2>第三条　项目周期</h2>
+      <ol>
+        <li>项目预计制作周期为 <input class="input-line editable-number" data-key="project.workDays" type="number" min="1"> 个工作日，自首付款到账且甲方提供项目所需首批完整资料之日起计算。</li>
+        <li>等待甲方提供/补充资料、确认设计、提交修改意见，以及第三方平台审核、域名解析等非乙方可控时间，不计入制作周期。</li>
+        <li>如甲方原因导致项目连续暂停超过 <input class="input-line editable-number" data-key="terms.longPauseDays" type="number" min="1" value="60"> 个自然日，双方应重新确认工期及未完成工作；协商不成的，乙方可书面解除合同，并按已完成工作量结算。</li>
+      </ol>
+    </section>
+
+    <section class="clause">
+      <h2>第四条　双方责任</h2>
+      <ol>
+        <li>甲方应及时提供真实、合法并拥有相应使用权的文字、图片、视频、商标、资质及其他资料，并对网站内容的合法性、广告宣传及知识产权承担责任。</li>
+        <li>甲方应由指定联系人集中反馈需求、确认方案并按约付款；甲方内部意见不一致或非指定人员提出意见造成的返工，不属于乙方免费修改义务。</li>
+        <li>乙方应按照本合同及附件一完成网站建设，并对项目过程中接触到的甲方未公开资料及账号信息承担合理保密义务。</li>
+        <li>甲方或第三方自行修改程序、数据库、服务器配置、主题/插件等导致的故障或数据损失，由甲方自行承担；乙方协助处理可另行收费。</li>
+        <li>乙方有权拒绝明显违法、侵权或未经双方确认的超范围需求。</li>
+      </ol>
+    </section>
+
+    <section class="clause">
+      <h2>第五条　修改与需求变更</h2>
+      <ol>
+        <li>合同总价默认包含 <input class="input-line editable-number" data-key="project.revisionRounds" type="number" min="0" value="2"> 轮集中修改；一轮修改指甲方针对同一阶段成果一次性汇总提出的修改意见。</li>
+        <li>页面或方案一经甲方确认，再要求重新设计、更换整体风格、增加页面/功能/语言、改变架构、大量增加内容录入或数据迁移等，属于新增或重大变更。</li>
+        <li>重大变更实施前，乙方应说明变更内容、新增费用及工期影响；经甲方指定联系人以微信、邮件或其他可留痕方式明确确认后实施。未明确确认前，乙方无义务执行，也不因此承担延期责任。</li>
+      </ol>
+    </section>
+
+    <section class="clause">
+      <h2>第六条　验收与上线</h2>
+      <ol>
+        <li>设计方案一经甲方确认，不得仅以主观审美变化为由要求免费重新设计。</li>
+        <li>乙方完成附件一约定内容后，应通过双方约定的沟通方式通知甲方验收。甲方应在 <input class="input-line editable-number" data-key="terms.firstAcceptanceDays" type="number" min="1" value="5"> 个工作日内完成测试并一次性提出合同范围内的修改意见。</li>
+        <li>乙方完成合理修改并再次通知后，甲方应在 <input class="input-line editable-number" data-key="terms.secondAcceptanceDays" type="number" min="1" value="3"> 个工作日内确认。在交付成果基本符合附件一约定的前提下，甲方逾期未提出明确书面异议，或已绑定正式域名对外使用、开展业务、投放广告、提交搜索引擎、接收真实询盘等，视为验收通过。</li>
+        <li>验收通过后，按第二条约定结清尾款；尾款未结清前，乙方可仅提供测试预览或受限访问，不承担正式上线及完整交付义务。</li>
+      </ol>
+    </section>
+
+    <section class="clause">
+      <h2>第七条　第三方服务与知识产权</h2>
+      <ol>
+        <li>甲方提供的商标、文字、图片、视频及其他资料，其相关权利归甲方或原权利人所有；因甲方提供资料引发的侵权纠纷，由甲方承担责任。</li>
+        <li>WordPress、Elementor、第三方主题、插件、字体、图库、API 等权利归各自权利人所有，并受其授权规则约束。第三方涨价、停服、接口变化、停止维护或兼容性变化，不属于乙方违约。</li>
+        <li>乙方在项目开始前已拥有或独立积累的通用代码、组件、工具、开发框架及可复用技术，不因本合同而转让所有权；甲方有权正常运行、维护和迁移已交付的网站。</li>
+        <li>如附件一包含“基础 SEO”，仅指网站技术层面的基础配置，不保证搜索引擎收录时间、关键词排名、访问量或询盘数量。</li>
+      </ol>
+    </section>
+
+    <section class="clause">
+      <h2>第八条　交付与售后</h2>
+      <ol>
+        <li>甲方结清全部应付款项后，乙方根据项目实际情况移交网站后台管理员账号、网站文件/源码、数据库备份，以及双方约定可转移的域名、服务器或第三方账号权限。</li>
+        <li>自验收通过之日起，乙方提供 <input class="input-line editable-number" data-key="project.warrantyDays" type="number" min="0" value="30"> 天免费技术质保，仅处理本合同范围内由乙方制作内容的程序性故障。</li>
+        <li>新增页面/功能、内容更新、SEO运营、第三方服务故障或升级、服务器环境变化、甲方或第三方自行修改造成的问题，不属于免费质保。</li>
+        <li>项目交付完成后，乙方可免费保留最终交付版本备份 <input class="input-line editable-number" data-key="terms.backupDays" type="number" min="0" value="30"> 天；期限届满后乙方无继续保存义务，甲方应自行负责日常备份。</li>
+      </ol>
+    </section>
+
+    <section class="clause">
+      <h2>第九条　违约、通知与争议</h2>
+      <ol>
+        <li>甲方逾期付款超过 <input class="input-line editable-number" data-key="terms.overdueDays" type="number" min="1" value="7"> 个自然日，乙方有权暂停开发、上线、维护或交付，暂停期间不计入乙方工期。</li>
+        <li>任何一方严重违约，经另一方书面催告后仍未在合理期限内改正的，守约方有权暂停履行或解除合同；项目解除时按已完成工作量及已发生的第三方成本结算。</li>
+        <li>双方确认微信、邮件及双方实际使用的项目沟通工具可用于需求、设计、变更、验收、付款等通知和确认，相关电子记录可作为履约依据。</li>
+        <li>因不可抗力或非双方可控的第三方原因导致不能或延迟履行的，双方根据实际影响协商顺延、部分履行或解除。</li>
+        <li>因本合同产生争议，双方应先友好协商；协商不成的，依法向有管辖权的人民法院提起诉讼。</li>
+        <li>本合同附件及双方确认的补充协议、变更记录均为本合同组成部分，与正文具有同等效力。本合同自双方签字或盖章之日起生效。</li>
+      </ol>
+    </section>
+
+    <div class="signature">
+      <div class="sign-box">
+        <h3>甲方（签字/盖章）</h3>
+        <div class="sign-line"><span>签署人 / 授权代表：</span><input class="input-line" data-key="sign.partyARep" type="text"></div>
+        <div class="sign-line"><span>联系电话：</span><input class="input-line" data-key="sign.partyAPhone" type="text"></div>
+        <div class="sign-line"><span>签署日期：</span><input class="input-line" data-key="sign.partyADate" type="date"></div>
+      </div>
+      <div class="sign-box">
+        <h3>乙方（签字/盖章）</h3>
+        <div class="sign-line"><span>签署人 / 授权代表：</span><input class="input-line" data-key="sign.partyBRep" type="text"></div>
+        <div class="sign-line"><span>联系电话：</span><input class="input-line" data-key="sign.partyBPhone" type="text"></div>
+        <div class="sign-line"><span>签署日期：</span><input class="input-line" data-key="sign.partyBDate" type="date"></div>
+      </div>
+    </div>
+
+    <section class="attachment">
+      <h2 class="attachment-title">附件一：项目需求与报价确认单</h2>
+
+      <table class="project-info">
+        <tr><th>项目名称</th><td><input data-key="project.name2" type="text"></td></tr>
+        <tr><th>网站域名</th><td><input data-key="project.domain" type="text" placeholder="如暂无可留空"></td></tr>
+        <tr><th>网站类型 / 建站系统</th><td><input data-key="project.siteType" type="text" placeholder="例如：外贸企业官网 / WordPress + Elementor"></td></tr>
+        <tr><th>语言版本</th><td><input data-key="project.languages" type="text" placeholder="例如：中文、英文"></td></tr>
+        <tr><th>参考网站</th><td><textarea data-key="project.references" rows="2"></textarea></td></tr>
+        <tr><th>制作周期 / 修改 / 质保</th><td>
+          <input data-key="project.workDays2" type="number" min="1" style="width:80px"> 个工作日；
+          免费修改 <input data-key="project.revisionRounds2" type="number" min="0" style="width:70px"> 轮；
+          质保 <input data-key="project.warrantyDays2" type="number" min="0" style="width:70px"> 天
+        </td></tr>
+        <tr><th>合同总价 / 付款</th><td>
+          ￥ <input data-key="payment.total2" type="number" min="0" step="0.01" style="width:150px"> 元；
+          <input data-key="payment.method" type="text" placeholder="例如：50%首款 + 50%尾款" style="width:55%">
+        </td></tr>
+      </table>
+
+      <h3 class="section-title">页面 / 栏目清单</h3>
+      <table class="page-table">
+        <thead>
+          <tr><th>序号</th><th>页面 / 栏目</th><th>主要内容 / 功能</th><th>备注</th></tr>
+        </thead>
+        <tbody id="pageRows"></tbody>
+      </table>
+      <div class="no-print edit-only" style="margin-top:8px">
+        <button type="button" id="addRow">+ 增加一行</button>
+        <button type="button" id="removeRow">- 删除最后一行</button>
+      </div>
+
+      <h3 class="section-title">功能清单</h3>
+      <div class="checks" id="featureChecks">
+        <label class="check"><input type="checkbox" data-key="features.responsive">响应式适配</label>
+        <label class="check"><input type="checkbox" data-key="features.products">产品展示</label>
+        <label class="check"><input type="checkbox" data-key="features.blog">新闻 / 博客</label>
+        <label class="check"><input type="checkbox" data-key="features.cases">案例展示</label>
+        <label class="check"><input type="checkbox" data-key="features.inquiry">留言 / 询盘</label>
+        <label class="check"><input type="checkbox" data-key="features.search">站内搜索</label>
+        <label class="check"><input type="checkbox" data-key="features.multilingual">多语言</label>
+        <label class="check"><input type="checkbox" data-key="features.seo">基础 SEO</label>
+        <label class="check"><input type="checkbox" data-key="features.analytics">流量统计</label>
+      </div>
+      <div class="form-row"><label>其他功能</label><input data-key="features.other" type="text" placeholder="如有，请详细说明；未填写视为无"></div>
+
+      <h3 class="section-title">资料、第三方费用及特别约定</h3>
+      <textarea data-key="special.notes" rows="3" placeholder="可填写：资料由谁提供、首批录入数量、域名/主机/插件/API费用、特殊交付要求、额外维护服务等"></textarea>
+
+      <p class="note" style="margin:10px 0 0;">说明：基础 SEO 仅指网站技术层面的基础配置，不保证搜索引擎收录时间、关键词排名、访问量或询盘数量。</p>
+
+      <p style="margin-top:10px"><strong>双方确认：</strong>以上项目需求、范围、价格及周期已阅读并确认。</p>
+
+      <div class="attachment-sign">
+        <div>
+          <div class="sign-line"><span>甲方确认：</span><input class="input-line" data-key="attachment.partyAConfirm" type="text"></div>
+          <div class="sign-line"><span>日期：</span><input class="input-line" data-key="attachment.partyADate" type="date"></div>
+        </div>
+        <div>
+          <div class="sign-line"><span>乙方确认：</span><input class="input-line" data-key="attachment.partyBConfirm" type="text"></div>
+          <div class="sign-line"><span>日期：</span><input class="input-line" data-key="attachment.partyBDate" type="date"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'website_contract_builder_sqlite_v1';
+  const API_LOAD = 'api/load.php';
+  const API_SAVE = 'api/save.php';
+  const app = document.getElementById('app');
+  const saveState = document.getElementById('saveState');
+  const pageRows = document.getElementById('pageRows');
+
+  let serverSaveTimer = null;
+  let localSaveTimer = null;
+  let isLoading = true;
+  let serverAvailable = true;
+  let lastServerPayload = '';
+
+  function today(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function defaultContractNo(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `WEB-${y}-${m}${day}-01`;
+  }
+  function setDeep(obj, path, value){
+    const parts = path.split('.');
+    let cur = obj;
+    parts.forEach((p,i)=>{
+      if(i===parts.length-1){ cur[p]=value; }
+      else { if(!cur[p] || typeof cur[p] !== 'object') cur[p]={}; cur=cur[p]; }
+    });
+  }
+  function getDeep(obj,path){
+    return path.split('.').reduce((o,k)=>o && o[k]!==undefined ? o[k] : undefined,obj);
+  }
+
+  function createPageRows(n=8){
+    pageRows.innerHTML='';
+    for(let i=0;i<n;i++) addPageRow();
+  }
+  function addPageRow(data={}){
+    const index = pageRows.children.length;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:center">${index+1}</td>
+      <td><input type="text" data-row-key="name" value="${escapeHtml(data.name||'')}"></td>
+      <td><input type="text" data-row-key="function" value="${escapeHtml(data.function||'')}"></td>
+      <td><input type="text" data-row-key="note" value="${escapeHtml(data.note||'')}"></td>`;
+    pageRows.appendChild(tr);
+    tr.querySelectorAll('input').forEach(el=>el.addEventListener('input', scheduleSave));
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  }
+  function getRows(){
+    return [...pageRows.querySelectorAll('tr')].map(tr=>{
+      const cells={};
+      tr.querySelectorAll('[data-row-key]').forEach(el=>cells[el.dataset.rowKey]=el.value);
+      return cells;
+    });
+  }
+
+  function serialize(){
+    const data = {version:2, savedAt:new Date().toISOString(), pageRows:getRows()};
+    document.querySelectorAll('[data-key]').forEach(el=>{
+      let value;
+      if(el.type==='checkbox') value=el.checked;
+      else value=el.value;
+      setDeep(data,el.dataset.key,value);
+    });
+    return data;
+  }
+
+  function applyData(data){
+    document.querySelectorAll('[data-key]').forEach(el=>{
+      const v=getDeep(data,el.dataset.key);
+      if(v===undefined || v===null) return;
+      if(el.type==='checkbox') el.checked=!!v;
+      else el.value=v;
+    });
+    if(Array.isArray(data.pageRows)){
+      pageRows.innerHTML='';
+      data.pageRows.forEach(r=>addPageRow(r));
+      if(data.pageRows.length===0) createPageRows(8);
+    }
+    syncLinkedFields();
+    updateAmounts();
+    autoGrowAll();
+  }
+
+  function saveLocalNow(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(serialize()));
+    }catch(e){}
+  }
+
+  function scheduleSave(){
+    if(isLoading) return;
+    clearTimeout(localSaveTimer);
+    clearTimeout(serverSaveTimer);
+    saveState.textContent='有未保存修改';
+    localSaveTimer=setTimeout(saveLocalNow, 180);
+    serverSaveTimer=setTimeout(()=>saveServer(false), 1800);
+  }
+
+  function formatServerTime(iso){
+    if(!iso) return '';
+    const d=new Date(iso);
+    if(Number.isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  }
+
+  async function saveServer(manual=true){
+    clearTimeout(serverSaveTimer);
+    clearTimeout(localSaveTimer);
+    const data=serialize();
+    const payload=JSON.stringify(data);
+
+    saveLocalNow();
+
+    // 自动保存时，内容没有变化则不重复写 SQLite。
+    if(!manual && payload===lastServerPayload){
+      saveState.textContent='已保存';
+      return true;
+    }
+
+    saveState.textContent='正在保存…';
+
+    try{
+      const response=await fetch(API_SAVE,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        credentials:'same-origin',
+        cache:'no-store',
+        body:payload
+      });
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok || !result.success){
+        throw new Error(result.message || `HTTP ${response.status}`);
+      }
+      serverAvailable=true;
+      lastServerPayload=payload;
+      const time=formatServerTime(result.updated_at) || new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+      saveState.textContent=`服务器已保存 ${time}`;
+      return true;
+    }catch(err){
+      serverAvailable=false;
+      saveState.textContent='服务器保存失败，本地草稿已保留';
+      if(manual){
+        alert('服务器保存失败。当前修改仍已保存在本浏览器中，请检查 PHP / SQLite 环境后重试。\\n\\n'+err.message);
+      }
+      return false;
+    }
+  }
+
+  async function loadInitialData(){
+    let localData=null;
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      try{ localData=JSON.parse(raw); }catch(e){}
+    }
+
+    try{
+      const response=await fetch(API_LOAD,{
+        method:'GET',
+        headers:{'Accept':'application/json'},
+        credentials:'same-origin',
+        cache:'no-store'
+      });
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok || !result.success){
+        throw new Error(result.message || `HTTP ${response.status}`);
+      }
+
+      serverAvailable=true;
+
+      if(result.data && typeof result.data==='object'){
+        applyData(result.data);
+        lastServerPayload=JSON.stringify(serialize());
+        saveLocalNow();
+        const time=formatServerTime(result.updated_at);
+        saveState.textContent=time ? `服务器已保存 ${time}` : '已从服务器恢复';
+      }else if(localData){
+        // 第一次启用 SQLite 时，如浏览器已有旧草稿，自动迁移到服务器。
+        applyData(localData);
+        saveState.textContent='正在将本地草稿保存到服务器…';
+        await saveServer(true);
+      }else{
+        setDefaults();
+        saveLocalNow();
+        await saveServer(false);
+      }
+    }catch(err){
+      serverAvailable=false;
+      if(localData){
+        applyData(localData);
+        saveState.textContent='服务器不可用，已恢复本地草稿';
+      }else{
+        setDefaults();
+        saveLocalNow();
+        saveState.textContent='服务器不可用，当前使用本地草稿';
+      }
+    }finally{
+      isLoading=false;
+      updateAmounts();
+      autoGrowAll();
+    }
+  }
+
+  function updateAmounts(){
+    const total=Number(document.getElementById('totalAmount').value||0);
+    const rate=Number(document.getElementById('depositRate').value||0);
+    const deposit=total*rate/100;
+    const balance=total-deposit;
+    document.getElementById('depositAmount').value=total ? deposit.toFixed(2) : '';
+    document.getElementById('balanceAmount').value=total ? balance.toFixed(2) : '';
+    document.getElementById('depositRateText').value = rate || '';
+  }
+
+  function syncLinkedFields(source){
+    const map=[
+      ['project.name','project.name2'],
+      ['project.workDays','project.workDays2'],
+      ['project.revisionRounds','project.revisionRounds2'],
+      ['project.warrantyDays','project.warrantyDays2'],
+      ['payment.total','payment.total2'],
+      ['meta.signDate','sign.partyADate'],
+      ['meta.signDate','sign.partyBDate'],
+      ['meta.signDate','attachment.partyADate'],
+      ['meta.signDate','attachment.partyBDate'],
+      ['partyB.contact','sign.partyBRep'],
+      ['partyB.phone','sign.partyBPhone'],
+      ['partyA.phone','sign.partyAPhone'],
+      ['partyA.contact','sign.partyARep'],
+      ['partyA.name','attachment.partyAConfirm'],
+      ['partyB.name','attachment.partyBConfirm']
+    ];
+    map.forEach(([a,b])=>{
+      const ea=document.querySelector(`[data-key="${a}"]`);
+      const eb=document.querySelector(`[data-key="${b}"]`);
+      if(!ea||!eb) return;
+      if(source===eb && eb.value!=='') return;
+      if(source===ea || !eb.value) eb.value=ea.value;
+    });
+    const partyAName=document.querySelector('[data-key="partyA.name"]');
+    const partyAContact=document.querySelector('[data-key="partyA.contact"]');
+    const partyARep=document.querySelector('[data-key="sign.partyARep"]');
+    if(partyARep && !partyARep.value && partyAName) partyARep.value=(partyAContact && partyAContact.value) ? partyAContact.value : partyAName.value;
+
+    const partyBName=document.querySelector('[data-key="partyB.name"]');
+    const partyBContact=document.querySelector('[data-key="partyB.contact"]');
+    const partyBRep=document.querySelector('[data-key="sign.partyBRep"]');
+    if(partyBRep && !partyBRep.value && partyBName) partyBRep.value=(partyBContact && partyBContact.value) ? partyBContact.value : partyBName.value;
+
+  }
+
+  function autoGrow(el){
+    if(el.tagName!=='TEXTAREA') return;
+    el.style.height='auto';
+    el.style.height=Math.max(el.scrollHeight,64)+'px';
+  }
+  function autoGrowAll(){ document.querySelectorAll('textarea').forEach(autoGrow); }
+
+  document.addEventListener('input',e=>{
+    if(e.target.matches('[data-key]')){
+      if(['totalAmount','depositRate'].includes(e.target.id)) updateAmounts();
+      if(e.target.id==='depositRateText'){
+        document.getElementById('depositRate').value=e.target.value;
+        updateAmounts();
+      }
+      syncLinkedFields(e.target);
+      autoGrow(e.target);
+      scheduleSave();
+    }
+  });
+  document.addEventListener('change',e=>{
+    if(e.target.matches('[data-key]')){ syncLinkedFields(e.target); scheduleSave(); }
+  });
+
+  document.getElementById('saveServer').addEventListener('click',()=>saveServer(true));
+
+  document.getElementById('togglePreview').addEventListener('click',function(){
+    app.classList.toggle('preview-mode');
+    this.textContent=app.classList.contains('preview-mode')?'返回编辑':'预览模式';
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+
+  document.getElementById('printBtn').addEventListener('click',()=>{
+    const wasPreview=app.classList.contains('preview-mode');
+    app.classList.add('preview-mode');
+    setTimeout(()=>{
+      window.print();
+      if(!wasPreview) app.classList.remove('preview-mode');
+    },80);
+  });
+
+  document.getElementById('exportJson').addEventListener('click',()=>{
+    const data=serialize();
+    const no=(getDeep(data,'meta.contractNo')||'contract').replace(/[\\/:*?"<>|]/g,'-');
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=no+'.json'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('importJson').addEventListener('change',async e=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    try{
+      const data=JSON.parse(await file.text());
+      applyData(data); saveLocalNow(); await saveServer(true);
+      alert('合同数据已导入并保存到服务器。');
+    }catch(err){
+      alert('导入失败：请选择本工具导出的 JSON 文件。');
+    }
+    e.target.value='';
+  });
+
+  document.getElementById('newContract').addEventListener('click',async ()=>{
+    if(!confirm('确认清空当前合同？\n\n此操作会用空白合同覆盖服务器中的当前数据。建议如需留档，先导出 JSON 或保存 PDF。')) return;
+    isLoading=true;
+    localStorage.removeItem(STORAGE_KEY);
+    document.querySelectorAll('[data-key]').forEach(el=>{
+      if(el.type==='checkbox') el.checked=false;
+      else el.value='';
+    });
+    createPageRows(8);
+    setDefaults();
+    updateAmounts();
+    autoGrowAll();
+    isLoading=false;
+    saveLocalNow();
+    await saveServer(true);
+  });
+
+
+  document.getElementById('addRow').addEventListener('click',()=>{ addPageRow(); scheduleSave(); });
+  document.getElementById('removeRow').addEventListener('click',()=>{
+    if(pageRows.children.length>1){ pageRows.lastElementChild.remove(); [...pageRows.children].forEach((tr,i)=>tr.children[0].textContent=i+1); scheduleSave(); }
+  });
+
+  function setDefaults(){
+    const defaults={
+      'meta.contractNo':defaultContractNo(),
+      'meta.signDate':today(),
+      'payment.depositRate':'50',
+      'payment.depositRateText':'50',
+      'terms.pauseDays':'15',
+      'terms.longPauseDays':'60',
+      'project.revisionRounds':'2',
+      'project.revisionRounds2':'2',
+      'terms.firstAcceptanceDays':'5',
+      'terms.secondAcceptanceDays':'3',
+      'project.warrantyDays':'30',
+      'project.warrantyDays2':'30',
+      'terms.overdueDays':'7',
+      'terms.balancePayDays':'3',
+      'terms.backupDays':'30',
+      'payment.method':'50%首款 + 50%尾款'
+    };
+    Object.entries(defaults).forEach(([k,v])=>{
+      const el=document.querySelector(`[data-key="${k}"]`);
+      if(el && !el.value) el.value=v;
+    });
+    syncLinkedFields();
+  }
+
+  createPageRows(8);
+  setDefaults();
+  updateAmounts();
+  autoGrowAll();
+  loadInitialData();
+})();
+</script>
+</body>
+</html>

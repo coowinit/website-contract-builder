@@ -1,0 +1,6 @@
+Options -Indexes
+
+# 禁止直接访问数据库、备份及其他敏感数据文件。
+<FilesMatch "\.(sqlite|sqlite3|db|json|bak|log)$">
+    Require all denied
+</FilesMatch>

@@ -1,9 +1,15 @@
-# Local / temporary files
+# SQLite runtime data
+/sqlite/database/*.sqlite
+/sqlite/database/*.sqlite-*
+/sqlite/database/*.db
+
+# Contract exports / signed files
+*.json
+*.pdf
+
+# Temporary / local files
+*.log
 *.tmp
 *.bak
-*.log
 .DS_Store
 Thumbs.db
-
-# Contract data exports should stay private
-*.json
