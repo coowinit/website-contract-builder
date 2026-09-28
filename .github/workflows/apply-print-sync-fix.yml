@@ -10,106 +10,15 @@ permissions:
 
 jobs:
   patch:
-    if: github.event.head_commit.message == 'chore: apply print sync fix'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Patch print synchronization
-        shell: python
+      - name: Patch files
         run: |
-          from pathlib import Path
-
-          sync_fn = r'''  // 打印前把当前表单状态同步到元素默认值。
-            // 某些浏览器生成 PDF 时会读取 textarea/defaultValue 等初始状态，
-            // 会导致刚修改的“特别约定”等多行文本仍打印旧内容。
-            function syncFormStateForPrint(){
-              document.querySelectorAll('textarea[data-key]').forEach(el=>{
-                el.defaultValue=el.value;
-                el.textContent=el.value;
-                autoGrow(el);
-              });
-              document.querySelectorAll('input[data-key]').forEach(el=>{
-                if(el.type==='checkbox'){
-                  el.defaultChecked=el.checked;
-                  if(el.checked) el.setAttribute('checked','checked');
-                  else el.removeAttribute('checked');
-                }else{
-                  el.defaultValue=el.value;
-                  el.setAttribute('value',el.value);
-                }
-              });
-              document.querySelectorAll('select[data-key]').forEach(el=>{
-                [...el.options].forEach(option=>{
-                  const selected=option.value===el.value;
-                  option.defaultSelected=selected;
-                  if(selected) option.setAttribute('selected','selected');
-                  else option.removeAttribute('selected');
-                });
-              });
-            }
-
-          '''
-
-          old_print = r'''  document.getElementById('printBtn').addEventListener('click',()=>{
-              const wasPreview=app.classList.contains('preview-mode');
-              app.classList.add('preview-mode');
-              setTimeout(()=>{
-                window.print();
-                if(!wasPreview) app.classList.remove('preview-mode');
-              },80);
-            });'''
-
-          new_static_print = r'''  document.getElementById('printBtn').addEventListener('click',()=>{
-              clearTimeout(saveTimer);
-              save();
-              syncFormStateForPrint();
-              autoGrowAll();
-
-              const wasPreview=app.classList.contains('preview-mode');
-              app.classList.add('preview-mode');
-              setTimeout(()=>{
-                window.print();
-                if(!wasPreview) app.classList.remove('preview-mode');
-              },100);
-            });'''
-
-          new_sqlite_print = r'''  document.getElementById('printBtn').addEventListener('click',async ()=>{
-              clearTimeout(localSaveTimer);
-              clearTimeout(serverSaveTimer);
-              saveLocalNow();
-              await saveServer(false);
-
-              syncFormStateForPrint();
-              autoGrowAll();
-
-              const wasPreview=app.classList.contains('preview-mode');
-              app.classList.add('preview-mode');
-              setTimeout(()=>{
-                window.print();
-                if(!wasPreview) app.classList.remove('preview-mode');
-              },100);
-            });'''
-
-          for file_name, replacement in [('index.html', new_static_print), ('sqlite/index.php', new_sqlite_print)]:
-              p = Path(file_name)
-              text = p.read_text(encoding='utf-8')
-
-              if 'function syncFormStateForPrint()' not in text:
-                  anchor = "  function autoGrow(el){"
-                  if anchor not in text:
-                      raise SystemExit(f'{file_name}: autoGrow anchor not found')
-                  text = text.replace(anchor, sync_fn + anchor, 1)
-
-              if old_print in text:
-                  text = text.replace(old_print, replacement, 1)
-              elif replacement not in text:
-                  raise SystemExit(f'{file_name}: print handler not found')
-
-              p.write_text(text, encoding='utf-8')
-
+          echo 'CmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAoKU1lOQ19GTiA9ICIiIiAgLy8g5omT5Y2w5YmN5oqK5b2T5YmN6KGo5Y2V54q25oCB5ZCM5q2l5Yiw5YWD57Sg6buY6K6k5YC844CCCiAgLy8g5p+Q5Lqb5rWP6KeI5Zmo55Sf5oiQIFBERiDml7bkvJror7vlj5YgdGV4dGFyZWEvZGVmYXVsdFZhbHVlIOetieWIneWni+eKtuaAge+8jAogIC8vIOS8muWvvOiHtOWImuS/ruaUueeahOKAnOeJueWIq+e6puWumuKAneetieWkmuihjOaWh+acrOS7jeaJk+WNsOaXp+WGheWuueOAggogIGZ1bmN0aW9uIHN5bmNGb3JtU3RhdGVGb3JQcmludCgpewogICAgZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgndGV4dGFyZWFbZGF0YS1rZXldJykuZm9yRWFjaChlbD0+ewogICAgICBlbC5kZWZhdWx0VmFsdWU9ZWwudmFsdWU7CiAgICAgIGVsLnRleHRDb250ZW50PWVsLnZhbHVlOwogICAgICBhdXRvR3JvdyhlbCk7CiAgICB9KTsKICAgIGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJ2lucHV0W2RhdGEta2V5XScpLmZvckVhY2goZWw9PnsKICAgICAgaWYoZWwudHlwZT09PSdjaGVja2JveCcpewogICAgICAgIGVsLmRlZmF1bHRDaGVja2VkPWVsLmNoZWNrZWQ7CiAgICAgICAgaWYoZWwuY2hlY2tlZCkgZWwuc2V0QXR0cmlidXRlKCdjaGVja2VkJywnY2hlY2tlZCcpOwogICAgICAgIGVsc2UgZWwucmVtb3ZlQXR0cmlidXRlKCdjaGVja2VkJyk7CiAgICAgIH1lbHNlewogICAgICAgIGVsLmRlZmF1bHRWYWx1ZT1lbC52YWx1ZTsKICAgICAgICBlbC5zZXRBdHRyaWJ1dGUoJ3ZhbHVlJyxlbC52YWx1ZSk7CiAgICAgIH0KICAgIH0pOwogICAgZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgnc2VsZWN0W2RhdGEta2V5XScpLmZvckVhY2goZWw9PnsKICAgICAgWy4uLmVsLm9wdGlvbnNdLmZvckVhY2gob3B0aW9uPT57CiAgICAgICAgY29uc3Qgc2VsZWN0ZWQ9b3B0aW9uLnZhbHVlPT09ZWwudmFsdWU7CiAgICAgICAgb3B0aW9uLmRlZmF1bHRTZWxlY3RlZD1zZWxlY3RlZDsKICAgICAgICBpZihzZWxlY3RlZCkgb3B0aW9uLnNldEF0dHJpYnV0ZSgnc2VsZWN0ZWQnLCdzZWxlY3RlZCcpOwogICAgICAgIGVsc2Ugb3B0aW9uLnJlbW92ZUF0dHJpYnV0ZSgnc2VsZWN0ZWQnKTsKICAgICAgfSk7CiAgICB9KTsKICB9CgogICJgCg== ' | base64 -d > /tmp/patch.py
+          python3 /tmp/patch.py
       - name: Commit fix
         run: |
           git config user.name "github-actions[bot]"
@@ -118,5 +27,3 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "fix: 打印前同步当前表单数据"
           git push
-
-# trigger print sync patch
