@@ -118,3 +118,5 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "fix: 打印前同步当前表单数据"
           git push
+
+# trigger print sync patch
