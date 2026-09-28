@@ -155,6 +155,10 @@
     resize:vertical;
     min-height:42px;
   }
+  textarea[data-key="special.notes"] {
+    overflow-y: hidden;
+    resize: none;
+  }
   .input-line{
     background:transparent!important;
     border:0!important;
@@ -228,11 +232,12 @@
     gap:10px 18px;
   }
   .amount-note{
-    grid-template-columns:150px 1fr;
+    grid-template-columns:94px 1fr;
     align-items:start;
   }
   .amount-note label{
     padding-top:7px;
+    font-weight: bold;
   }
   .field-help{
     display:block;
@@ -298,7 +303,7 @@
     text-align:center;
   }
   td input,td select,td textarea{
-    border:0;
+    border:1px;
     background:transparent;
     padding:2px 3px;
   }
@@ -796,7 +801,7 @@
       </div>
       <div class="form-row"><label>其他功能</label><input data-key="features.other" type="text" placeholder="如有，请详细说明；未填写视为无"></div>
 
-      <h3 class="section-title">资料、第三方费用及特别约定</h3>
+      <h3 class="section-title">特别约定</h3>
       <textarea data-key="special.notes" rows="3" placeholder="可填写：资料由谁提供、首批录入数量、特殊第三方费用、额外交付要求及其他本项目特有约定"></textarea>
 
       <p class="note" style="margin:10px 0 0;">说明：基础 SEO 仅指网站技术层面的基础配置，不保证搜索引擎收录时间、关键词排名、访问量或询盘数量。</p>
