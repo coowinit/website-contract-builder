@@ -1,0 +1,9 @@
+# Local / temporary files
+*.tmp
+*.bak
+*.log
+.DS_Store
+Thumbs.db
+
+# Contract data exports should stay private
+*.json
