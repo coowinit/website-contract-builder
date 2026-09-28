@@ -963,14 +963,10 @@
       ['payment.total','payment.total2'],
       ['meta.signDate','sign.partyADate'],
       ['meta.signDate','sign.partyBDate'],
-      ['meta.signDate','attachment.partyADate'],
-      ['meta.signDate','attachment.partyBDate'],
       ['partyB.contact','sign.partyBRep'],
       ['partyB.phone','sign.partyBPhone'],
       ['partyA.phone','sign.partyAPhone'],
-      ['partyA.contact','sign.partyARep'],
-      ['partyA.name','attachment.partyAConfirm'],
-      ['partyB.name','attachment.partyBConfirm']
+      ['partyA.contact','sign.partyARep']
     ];
     map.forEach(([a,b])=>{
       const ea=document.querySelector(`[data-key="${a}"]`);
