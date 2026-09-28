@@ -1,0 +1,95 @@
+name: Fix special notes printing
+
+on:
+  push:
+    paths:
+      - '.github/workflows/print-special-notes-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch special notes print rendering
+        shell: python
+        run: |
+          from pathlib import Path
+
+          files = [Path('index.html'), Path('sqlite/index.php')]
+
+          for path in files:
+              text = path.read_text(encoding='utf-8')
+
+              # 1) Add print mirror styles.
+              css_anchor = '''  textarea[data-key="special.notes"] {\n    overflow-y: hidden;\n    resize: none;\n  }\n'''
+              css_add = css_anchor + '''  .special-notes-print{\n    display:none;\n    white-space:pre-wrap;\n    word-break:break-word;\n  }\n'''
+              if '.special-notes-print{' not in text:
+                  if css_anchor not in text:
+                      raise SystemExit(f'{path}: special notes css anchor not found')
+                  text = text.replace(css_anchor, css_add, 1)
+
+              # 2) Add a print-only mirror directly after the textarea.
+              html_anchor = '''      <textarea data-key="special.notes" rows="3" placeholder="可填写：资料由谁提供、首批录入数量、特殊第三方费用、额外交付要求及其他本项目特有约定"></textarea>\n'''
+              html_add = html_anchor + '''      <div class="special-notes-print" id="specialNotesPrint"></div>\n'''
+              if 'id="specialNotesPrint"' not in text:
+                  if html_anchor not in text:
+                      raise SystemExit(f'{path}: special notes textarea anchor not found')
+                  text = text.replace(html_anchor, html_add, 1)
+
+              # 3) Print mode uses the mirror instead of textarea, avoiding textarea clipping.
+              print_anchor = '''    textarea{resize:none;overflow:visible}\n'''
+              print_add = print_anchor + '''    textarea[data-key="special.notes"]{display:none!important}\n    .special-notes-print{\n      display:block!important;\n      white-space:pre-wrap!important;\n      word-break:break-word!important;\n      line-height:1.48!important;\n      margin:0!important;\n      padding:0!important;\n      color:#000!important;\n    }\n'''
+              if 'textarea[data-key="special.notes"]{display:none!important}' not in text:
+                  if print_anchor not in text:
+                      raise SystemExit(f'{path}: print textarea anchor not found')
+                  text = text.replace(print_anchor, print_add, 1)
+
+              # 4) Keep mirror synchronized with the live textarea.
+              sync_anchor = '''  function syncFormStateForPrint(){\n'''
+              sync_insert = '''  function syncSpecialNotesPrint(){\n    const source=document.querySelector('textarea[data-key="special.notes"]');\n    const target=document.getElementById('specialNotesPrint');\n    if(source && target) target.textContent=source.value || '';\n  }\n\n'''
+              if 'function syncSpecialNotesPrint()' not in text:
+                  if sync_anchor not in text:
+                      raise SystemExit(f'{path}: sync function anchor not found')
+                  text = text.replace(sync_anchor, sync_insert + sync_anchor, 1)
+
+              old_sync_end = '''      [...el.options].forEach(option=>{\n        const selected=option.value===el.value;\n        option.defaultSelected=selected;\n        if(selected) option.setAttribute('selected','selected');\n        else option.removeAttribute('selected');\n      });\n    });\n  }\n'''
+              new_sync_end = '''      [...el.options].forEach(option=>{\n        const selected=option.value===el.value;\n        option.defaultSelected=selected;\n        if(selected) option.setAttribute('selected','selected');\n        else option.removeAttribute('selected');\n      });\n    });\n    syncSpecialNotesPrint();\n  }\n'''
+              if 'syncSpecialNotesPrint();\n  }\n\n  function autoGrow' not in text:
+                  if old_sync_end not in text:
+                      raise SystemExit(f'{path}: sync function end not found')
+                  text = text.replace(old_sync_end, new_sync_end, 1)
+
+              # 5) Also update mirror whenever the special notes textarea changes.
+              input_anchor = '''      autoGrow(e.target);\n      scheduleSave();\n'''
+              input_add = '''      autoGrow(e.target);\n      if(e.target.matches('textarea[data-key="special.notes"]')) syncSpecialNotesPrint();\n      scheduleSave();\n'''
+              if "if(e.target.matches('textarea[data-key=\"special.notes\"]')) syncSpecialNotesPrint();" not in text:
+                  if input_anchor not in text:
+                      raise SystemExit(f'{path}: input handler anchor not found')
+                  text = text.replace(input_anchor, input_add, 1)
+
+              # 6) Initialize mirror after data load/defaults.
+              init_anchor = '''  autoGrowAll();\n'''
+              init_add = '''  autoGrowAll();\n  syncSpecialNotesPrint();\n'''
+              # Replace only the final initialization occurrence if not already present nearby.
+              if text.count('syncSpecialNotesPrint();') < 3:
+                  pos = text.rfind(init_anchor)
+                  if pos == -1:
+                      raise SystemExit(f'{path}: init anchor not found')
+                  text = text[:pos] + init_add + text[pos+len(init_anchor):]
+
+              path.write_text(text, encoding='utf-8')
+
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html sqlite/index.php
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: 完整打印特别约定内容"
+          git push
