@@ -1083,6 +1083,35 @@
 
   }
 
+  // 打印前把当前表单状态同步到元素默认值。
+  // 某些浏览器生成 PDF 时会读取 textarea/defaultValue 等初始状态，
+  // 会导致刚修改的“特别约定”等多行文本仍打印旧内容。
+  function syncFormStateForPrint(){
+    document.querySelectorAll('textarea[data-key]').forEach(el=>{
+      el.defaultValue=el.value;
+      el.textContent=el.value;
+      autoGrow(el);
+    });
+    document.querySelectorAll('input[data-key]').forEach(el=>{
+      if(el.type==='checkbox'){
+        el.defaultChecked=el.checked;
+        if(el.checked) el.setAttribute('checked','checked');
+        else el.removeAttribute('checked');
+      }else{
+        el.defaultValue=el.value;
+        el.setAttribute('value',el.value);
+      }
+    });
+    document.querySelectorAll('select[data-key]').forEach(el=>{
+      [...el.options].forEach(option=>{
+        const selected=option.value===el.value;
+        option.defaultSelected=selected;
+        if(selected) option.setAttribute('selected','selected');
+        else option.removeAttribute('selected');
+      });
+    });
+  }
+
   function autoGrow(el){
     if(el.tagName!=='TEXTAREA') return;
     el.style.height='auto';
@@ -1114,13 +1143,22 @@
     window.scrollTo({top:0,behavior:'smooth'});
   });
 
-  document.getElementById('printBtn').addEventListener('click',()=>{
+  document.getElementById('printBtn').addEventListener('click',async ()=>{
+    // 打印前立即保存当前输入到本地与 SQLite，不再等待自动保存防抖。
+    clearTimeout(localSaveTimer);
+    clearTimeout(serverSaveTimer);
+    saveLocalNow();
+    await saveServer(false);
+
+    syncFormStateForPrint();
+    autoGrowAll();
+
     const wasPreview=app.classList.contains('preview-mode');
     app.classList.add('preview-mode');
     setTimeout(()=>{
       window.print();
       if(!wasPreview) app.classList.remove('preview-mode');
-    },80);
+    },100);
   });
 
   document.getElementById('exportJson').addEventListener('click',()=>{
