@@ -1,0 +1,73 @@
+name: Apply manual confirm date print fix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-manual-confirm-date-print-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch both static and sqlite versions
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          files = [Path('index.html'), Path('sqlite/index.php')]
+          helper = """  const confirmDateKeys=['attachment.partyADate','attachment.partyBDate'];
+
+          function prepareEmptyConfirmDatesForPrint(){
+            confirmDateKeys.forEach(key=>{
+              const el=document.querySelector(`[data-key=\"${key}\"]`);
+              if(!el || el.value) return;
+              el.dataset.printOriginalType=el.type;
+              el.type='text';
+              el.value='';
+              el.placeholder='';
+            });
+          }
+
+          function restoreConfirmDatesAfterPrint(){
+            confirmDateKeys.forEach(key=>{
+              const el=document.querySelector(`[data-key=\"${key}\"]`);
+              if(!el || !el.dataset.printOriginalType) return;
+              el.type=el.dataset.printOriginalType;
+              delete el.dataset.printOriginalType;
+            });
+          }
+
+          window.addEventListener('afterprint', restoreConfirmDatesAfterPrint);
+
+          """
+
+          for path in files:
+              text = path.read_text(encoding='utf-8')
+              if 'function prepareEmptyConfirmDatesForPrint()' not in text:
+                  anchor = '  function syncFormStateForPrint(){\n'
+                  if anchor not in text:
+                      raise SystemExit(f'{path}: missing sync anchor')
+                  text = text.replace(anchor, helper + anchor, 1)
+
+              marker = "    const wasPreview=app.classList.contains('preview-mode');\n"
+              if 'prepareEmptyConfirmDatesForPrint();\n\n    const wasPreview' not in text:
+                  if marker not in text:
+                      raise SystemExit(f'{path}: missing print marker')
+                  text = text.replace(marker, '    prepareEmptyConfirmDatesForPrint();\n\n' + marker, 1)
+
+              path.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html sqlite/index.php
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: 空白确认日期打印为纯空白"
+          git push
