@@ -996,6 +996,30 @@
     if(source && target) target.textContent=source.value || '';
   }
 
+  const confirmDateKeys=['attachment.partyADate','attachment.partyBDate'];
+
+function prepareEmptyConfirmDatesForPrint(){
+  confirmDateKeys.forEach(key=>{
+    const el=document.querySelector(`[data-key="${key}"]`);
+    if(!el || el.value) return;
+    el.dataset.printOriginalType=el.type;
+    el.type='text';
+    el.value='';
+    el.placeholder='';
+  });
+}
+
+function restoreConfirmDatesAfterPrint(){
+  confirmDateKeys.forEach(key=>{
+    const el=document.querySelector(`[data-key="${key}"]`);
+    if(!el || !el.dataset.printOriginalType) return;
+    el.type=el.dataset.printOriginalType;
+    delete el.dataset.printOriginalType;
+  });
+}
+
+window.addEventListener('afterprint', restoreConfirmDatesAfterPrint);
+
   function syncFormStateForPrint(){
     document.querySelectorAll('textarea[data-key]').forEach(el=>{
       el.defaultValue=el.value;
@@ -1059,6 +1083,8 @@
     save();
     syncFormStateForPrint();
     autoGrowAll();
+
+    prepareEmptyConfirmDatesForPrint();
 
     const wasPreview=app.classList.contains('preview-mode');
     app.classList.add('preview-mode');
