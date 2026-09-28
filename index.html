@@ -159,6 +159,11 @@
     overflow-y: hidden;
     resize: none;
   }
+  .special-notes-print{
+    display:none;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
   .input-line{
     background:transparent!important;
     border:0!important;
@@ -437,6 +442,16 @@
     }
     .input-line{border-bottom:1px solid #777!important}
     textarea{resize:none;overflow:visible}
+    textarea[data-key="special.notes"]{display:none!important}
+    .special-notes-print{
+      display:block!important;
+      white-space:pre-wrap!important;
+      word-break:break-word!important;
+      line-height:1.48!important;
+      margin:0!important;
+      padding:0!important;
+      color:#000!important;
+    }
     .party-card,.amount-box{break-inside:avoid}
     .party-grid,.signature,.attachment-sign{break-inside:avoid}
     .attachment{break-before:page;margin-top:0;padding-top:0;border-top:0}
@@ -803,6 +818,7 @@
 
       <h3 class="section-title">特别约定</h3>
       <textarea data-key="special.notes" rows="3" placeholder="可填写：资料由谁提供、首批录入数量、特殊第三方费用、额外交付要求及其他本项目特有约定"></textarea>
+      <div class="special-notes-print" id="specialNotesPrint"></div>
 
       <p class="note" style="margin:10px 0 0;">说明：基础 SEO 仅指网站技术层面的基础配置，不保证搜索引擎收录时间、关键词排名、访问量或询盘数量。</p>
 
@@ -978,6 +994,12 @@
   // 打印前把当前表单状态同步到元素默认值。
   // 某些浏览器生成 PDF 时会读取 textarea/defaultValue 等初始状态，
   // 会导致刚修改的“特别约定”等多行文本仍打印旧内容。
+  function syncSpecialNotesPrint(){
+    const source=document.querySelector('textarea[data-key="special.notes"]');
+    const target=document.getElementById('specialNotesPrint');
+    if(source && target) target.textContent=source.value || '';
+  }
+
   function syncFormStateForPrint(){
     document.querySelectorAll('textarea[data-key]').forEach(el=>{
       el.defaultValue=el.value;
@@ -1002,6 +1024,7 @@
         else option.removeAttribute('selected');
       });
     });
+    syncSpecialNotesPrint();
   }
 
   function autoGrow(el){
@@ -1020,6 +1043,7 @@
       }
       syncLinkedFields(e.target);
       autoGrow(e.target);
+      if(e.target.matches('textarea[data-key="special.notes"]')) syncSpecialNotesPrint();
       scheduleSave();
     }
   });
@@ -1129,6 +1153,7 @@
   }
   updateAmounts();
   autoGrowAll();
+  syncSpecialNotesPrint();
 })();
 </script>
 </body>
