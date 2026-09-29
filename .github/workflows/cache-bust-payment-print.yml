@@ -1,0 +1,55 @@
+name: Cache bust and payment print tweak
+on:
+  push:
+    paths:
+      - '.github/workflows/cache-bust-payment-print.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Update asset versions and payment print spacing
+        shell: python
+        run: |
+          from pathlib import Path
+
+          version = '1.2.0-20260929'
+
+          root_path = Path('index.html')
+          root = root_path.read_text(encoding='utf-8')
+          root = root.replace('assets/css/contract.css"', f'assets/css/contract.css?v={version}"')
+          root = root.replace('assets/js/contract.js"', f'assets/js/contract.js?v={version}"')
+          root_path.write_text(root, encoding='utf-8')
+
+          php_path = Path('sqlite/index.php')
+          php = php_path.read_text(encoding='utf-8')
+          php = php.replace('/css/contract.css">', f'/css/contract.css?v={version}">')
+          php = php.replace('/js/contract.js"></script>', f'/js/contract.js?v={version}"></script>')
+          php_path.write_text(php, encoding='utf-8')
+
+          css_path = Path('assets/css/contract.css')
+          css = css_path.read_text(encoding='utf-8')
+          marker = '/* v1.2.0 payment print final alignment */'
+          if marker not in css:
+              css += '''\n\n/* v1.2.0 payment print final alignment */\n@media print {\n  .project-info td:has([data-key="payment.total2"]) {\n    white-space: nowrap;\n  }\n\n  .project-info [data-key="payment.total2"] {\n    width: 58px !important;\n    min-width: 58px !important;\n    max-width: 58px !important;\n    margin: 0 !important;\n    text-align: left !important;\n  }\n\n  .project-info [data-key="payment.method"] {\n    width: 145px !important;\n    min-width: 145px !important;\n    max-width: 145px !important;\n    margin-left: 2px !important;\n  }\n}\n'''
+          css_path.write_text(css, encoding='utf-8')
+
+      - name: Validate
+        run: |
+          grep -q 'contract.css?v=1.2.0-20260929' index.html
+          grep -q 'contract.css?v=1.2.0-20260929' sqlite/index.php
+          grep -q 'payment print final alignment' assets/css/contract.css
+          php -l sqlite/index.php
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html sqlite/index.php assets/css/contract.css
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: 增加资源版本号并优化附件付款打印对齐"
+          git push
