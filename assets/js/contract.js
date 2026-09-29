@@ -316,6 +316,24 @@
     if(source && target) target.textContent=source.value || '';
   }
 
+  // 打印时用普通文本完整展示容易被 input / textarea 截断的长字段。
+  const printMirrorKeys=['project.languages','project.references'];
+
+  function syncFieldPrintMirrors(){
+    printMirrorKeys.forEach(key=>{
+      const source=document.querySelector(`[data-key="${key}"]`);
+      if(!source || !source.parentElement) return;
+      let mirror=source.parentElement.querySelector(`.field-print-mirror[data-print-key="${key}"]`);
+      if(!mirror){
+        mirror=document.createElement('div');
+        mirror.className='field-print-mirror';
+        mirror.dataset.printKey=key;
+        source.insertAdjacentElement('afterend',mirror);
+      }
+      mirror.textContent=source.value || '';
+    });
+  }
+
   const confirmDateKeys=['attachment.partyADate','attachment.partyBDate'];
 
   function prepareEmptyConfirmDatesForPrint(){
@@ -366,6 +384,7 @@
     });
 
     syncSpecialNotesPrint();
+    syncFieldPrintMirrors();
   }
 
   function autoGrow(el){
@@ -514,6 +533,7 @@
     syncLinkedFields(e.target);
     autoGrow(e.target);
     if(e.target.matches('textarea[data-key="special.notes"]')) syncSpecialNotesPrint();
+    if(printMirrorKeys.includes(e.target.dataset.key)) syncFieldPrintMirrors();
     scheduleSave();
   });
 
