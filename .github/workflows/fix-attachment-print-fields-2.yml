@@ -36,11 +36,6 @@ jobs:
           if a not in js: raise SystemExit('anchor c missing')
           js=js.replace(a,b,1)
 
-          a='''  syncSpecialNotesPrint();\n\n  if(IS_SQLITE){'''
-          b='''  syncSpecialNotesPrint();\n  syncFieldPrintMirrors();\n\n  if(IS_SQLITE){'''
-          if a not in js: raise SystemExit('anchor d missing')
-          js=js.replace(a,b,1)
-
           a='''  .special-notes-print{\n    display:none;\n    white-space:pre-wrap;\n    word-break:break-word;\n  }'''
           b='''  .special-notes-print{\n    display:none;\n    white-space:pre-wrap;\n    word-break:break-word;\n  }\n  .field-print-mirror{\n    display:none;\n    white-space:pre-wrap;\n    overflow-wrap:anywhere;\n    word-break:break-word;\n  }'''
           if a not in css: raise SystemExit('css a missing')
