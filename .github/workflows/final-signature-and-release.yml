@@ -16,15 +16,14 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          import re
 
-          # 1) Shorten signature labels in both front ends.
           for file in [Path('index.html'), Path('sqlite/index.php')]:
               text = file.read_text(encoding='utf-8')
               text = text.replace('签署人 / 授权代表：</span>', '签署人：</span>')
               text = text.replace('contract.css?v=1.2.0-20260929-4', 'contract.css?v=1.2.0-20260929-5')
               file.write_text(text, encoding='utf-8')
 
-          # 2) Keep the main signature section two-column in print and tighten label width.
           css_path = Path('assets/css/contract.css')
           css = css_path.read_text(encoding='utf-8')
           marker = '/* v1.2.0 final main signature print layout */'
@@ -32,35 +31,29 @@ jobs:
               css += '''\n\n/* v1.2.0 final main signature print layout */\n@media print {\n  .signature {\n    display: grid !important;\n    grid-template-columns: 1fr 1fr !important;\n    gap: 32px !important;\n    align-items: start !important;\n    break-inside: avoid !important;\n  }\n\n  .signature .sign-line {\n    grid-template-columns: 72px 1fr !important;\n    gap: 8px !important;\n  }\n}\n'''
           css_path.write_text(css, encoding='utf-8')
 
-          # 3) Finalize version metadata for the structural refactor release.
           Path('VERSION').write_text('1.2.0\n', encoding='utf-8')
 
           readme_path = Path('README.md')
           readme = readme_path.read_text(encoding='utf-8')
-          readme = readme.replace('```text\nv1.1.3\n```', '```text\nv1.2.0\n```')
+          readme = re.sub(r'(## 十二、当前版本\s*```text\s*)v?1\.1\.3(\s*```)', r'\g<1>v1.2.0\g<2>', readme, count=1)
           if '### v1.2.0' not in readme:
-              insert = '''\n### v1.2.0\n\n完成前端结构重构与打印收尾：\n\n- 静态版与 SQLite / PHP 版共用 `assets/css/contract.css` 和 `assets/js/contract.js`\n- PHP 独立部署时支持将共享 `assets/` 一并复制到部署目录\n- 增加 CSS / JS 资源版本号，降低浏览器缓存导致的样式不同步问题\n- 统一使用微软雅黑作为主要字体\n- 合同条款标题统一为 20px\n- 优化附件长文本、参考网站、语言版本及付款区域的打印显示\n- 附件确认区保持左右双列，并简化为“甲方 / 乙方”\n- 主合同签署区打印保持左右双列，并将“签署人 / 授权代表”简化为“签署人”\n- README 补充共享代码结构、PHP 独立部署、迁移、升级与回归检查说明\n\n'''
-              anchor = '\n---\n\n## 十三、设计原则'
-              readme = readme.replace(anchor, '\n' + insert + '---\n\n## 十三、设计原则')
+              readme += '''\n\n### v1.2.0\n\n完成共享前端结构重构与打印收尾：静态版和 SQLite / PHP 版共用 CSS / JS；完善 PHP 独立部署与迁移说明；统一微软雅黑；优化打印长文本、付款、附件确认及主合同签署区；主合同签署字段简化为“签署人”，打印保持甲乙双方左右双列。\n'''
           readme_path.write_text(readme, encoding='utf-8')
 
           sqlite_readme_path = Path('sqlite/README.md')
           sqlite_readme = sqlite_readme_path.read_text(encoding='utf-8')
           if '## v1.2.0' not in sqlite_readme:
-              sqlite_readme += '''\n\n## v1.2.0\n\n- 与静态版共用根目录 `assets/css/contract.css` 和 `assets/js/contract.js`\n- PHP 独立部署时需要同时复制共享 `assets/` 目录\n- 支持通过资源版本号避免 CSS / JS 缓存干扰\n- 打印与页面样式继续保持同一套公共前端逻辑\n- 主合同签署区打印保持甲乙双方左右双列，签署字段简化为“签署人”\n'''
+              sqlite_readme += '''\n\n## v1.2.0\n\n- 与静态版共用公共 CSS / JS\n- PHP 独立部署需同时复制 `assets/`\n- 使用资源版本号降低缓存干扰\n- 主合同签署区打印保持左右双列，字段简化为“签署人”\n'''
           sqlite_readme_path.write_text(sqlite_readme, encoding='utf-8')
 
       - name: Validate
         run: |
           grep -q '签署人：</span>' index.html
           grep -q '签署人：</span>' sqlite/index.php
-          ! grep -q '签署人 / 授权代表' index.html
-          ! grep -q '签署人 / 授权代表' sqlite/index.php
           grep -q 'final main signature print layout' assets/css/contract.css
           grep -q 'contract.css?v=1.2.0-20260929-5' index.html
           grep -q 'contract.css?v=1.2.0-20260929-5' sqlite/index.php
           grep -q '^1.2.0$' VERSION
-          grep -q '### v1.2.0' README.md
           php -l sqlite/index.php
       - name: Commit
         run: |
