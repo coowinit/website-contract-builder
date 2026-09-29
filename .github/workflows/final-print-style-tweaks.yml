@@ -17,36 +17,15 @@ jobs:
           fetch-depth: 0
 
       - name: Append final print style overrides
+        shell: python
         run: |
-          cat >> assets/css/contract.css <<'EOF'
-
-/* v1.2.0 print refinements: attachment payment + confirmation spacing */
-@media print {
-  .project-info [data-key="payment.total2"] {
-    width: 72px !important;
-    min-width: 72px !important;
-    max-width: 72px !important;
-    margin: 0 2px !important;
-    text-align: left !important;
-  }
-
-  .project-info [data-key="payment.method"] {
-    width: 170px !important;
-    min-width: 170px !important;
-    max-width: 170px !important;
-    margin-left: 4px !important;
-  }
-
-  .attachment .note + p {
-    margin-top: 14px !important;
-    margin-bottom: 8px !important;
-  }
-
-  .attachment-sign {
-    margin-top: 10px !important;
-  }
-}
-EOF
+          from pathlib import Path
+          path = Path('assets/css/contract.css')
+          css = path.read_text(encoding='utf-8')
+          marker = '/* v1.2.0 print refinements: attachment payment + confirmation spacing */'
+          if marker not in css:
+              css += '''\n\n/* v1.2.0 print refinements: attachment payment + confirmation spacing */\n@media print {\n  .project-info [data-key="payment.total2"] {\n    width: 72px !important;\n    min-width: 72px !important;\n    max-width: 72px !important;\n    margin: 0 2px !important;\n    text-align: left !important;\n  }\n\n  .project-info [data-key="payment.method"] {\n    width: 170px !important;\n    min-width: 170px !important;\n    max-width: 170px !important;\n    margin-left: 4px !important;\n  }\n\n  .attachment .note + p {\n    margin-top: 14px !important;\n    margin-bottom: 8px !important;\n  }\n\n  .attachment-sign {\n    margin-top: 10px !important;\n  }\n}\n'''
+              path.write_text(css, encoding='utf-8')
 
       - name: Validate CSS markers
         run: |
