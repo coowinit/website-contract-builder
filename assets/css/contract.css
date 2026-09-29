@@ -15,7 +15,7 @@
     margin:0;
     background:var(--bg);
     color:var(--text);
-    font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",Arial,sans-serif;
+    font-family:"Microsoft YaHei",Arial,sans-serif;
     line-height:1.75;
   }
   .app{
@@ -92,7 +92,7 @@
   .doc-title{
     margin:0;
     text-align:center;
-    font-family:"SimSun","Songti SC","STSong",serif;
+    font-family:"Microsoft YaHei",Arial,sans-serif;
     font-size:29px;
     letter-spacing:.16em;
     font-weight:700;
@@ -204,8 +204,8 @@
     margin:0 0 9px;
     padding-bottom:6px;
     border-bottom:1px solid #e6e8eb;
-    font-family:"SimSun","Songti SC","STSong",serif;
-    font-size:18px;
+    font-family:"Microsoft YaHei",Arial,sans-serif;
+    font-size:20px;
     font-weight:700;
   }
   .clause ol{
@@ -293,7 +293,7 @@
   }
   .attachment-title{
     text-align:center;
-    font-family:"SimSun","Songti SC","STSong",serif;
+    font-family:"Microsoft YaHei",Arial,sans-serif;
     font-size:24px;
     margin:0 0 24px;
   }
@@ -435,7 +435,7 @@
     .doc-title{font-size:18pt}
     .doc-subtitle{font-size:9pt;margin-bottom:16px}
     .clause{margin-top:10px}
-    .clause h2{font-size:11.5pt;margin-bottom:3px;padding-bottom:3px}
+    .clause h2{font-size:20px;margin-bottom:3px;padding-bottom:3px}
     .clause li{margin:2px 0}
     input,textarea,select{
       border:0!important;
