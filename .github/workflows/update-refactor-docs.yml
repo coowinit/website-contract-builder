@@ -1,0 +1,250 @@
+name: Update refactor documentation
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-refactor-docs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update version and documentation
+        shell: python
+        run: |
+          from pathlib import Path
+
+          Path('VERSION').write_text('1.1.3\n', encoding='utf-8')
+
+          readme = Path('README.md').read_text(encoding='utf-8')
+
+          old_structure = '''website-contract-builder/
+          ├─ index.html
+          ├─ README.md
+          ├─ VERSION
+          ├─ .gitignore
+          │
+          └─ sqlite/
+             ├─ index.php
+             ├─ README.md
+             ├─ .htaccess
+             │
+             ├─ api/
+             │  ├─ bootstrap.php
+             │  ├─ load.php
+             │  └─ save.php
+             │
+             └─ database/
+                ├─ .htaccess
+                └─ index.html'''
+
+          new_structure = '''website-contract-builder/
+          ├─ index.html
+          ├─ README.md
+          ├─ VERSION
+          ├─ .gitignore
+          │
+          ├─ assets/
+          │  ├─ css/
+          │  │  └─ contract.css
+          │  └─ js/
+          │     └─ contract.js
+          │
+          └─ sqlite/
+             ├─ index.php
+             ├─ README.md
+             ├─ .htaccess
+             │
+             ├─ api/
+             │  ├─ bootstrap.php
+             │  ├─ load.php
+             │  └─ save.php
+             │
+             └─ database/
+                ├─ .htaccess
+                └─ index.html'''
+
+          if old_structure in readme:
+              readme = readme.replace(old_structure, new_structure, 1)
+
+          readme = readme.replace(
+              '## 十二、当前版本\n\n```text\nv1.1.1\n```',
+              '## 十二、当前版本\n\n稳定 Release：\n\n```text\nv1.1.3\n```\n\n当前 `main` 分支已进入 **v1.2.0 结构重构阶段**，正在将静态版与 SQLite 版的公共 CSS / JavaScript 抽离为共享资源。',
+              1
+          )
+
+          marker = '''- 静态版和 SQLite 版保持相同合同及打印行为
+
+---'''
+          replacement = '''- 静态版和 SQLite 版保持相同合同及打印行为
+
+### v1.1.2
+
+优化实际填写与打印流程：
+
+- 特别约定长文本完整打印
+- 打印前同步当前表单状态
+- 甲乙双方附件确认人改为手动填写
+- 附件确认日期改为手动填写
+- 空白确认日期打印时保持纯空白，方便纸质手写
+
+### v1.1.3
+
+优化付款区域打印布局：
+
+- 修复首付款比例中的 `%` 打印错位
+- 优化“费用说明”标签与正文间距
+- 统一费用说明打印字体颜色、字号和行高
+- 静态版与 SQLite 版同步修复
+
+### v1.2.0（开发中）
+
+结构重构目标：
+
+- 公共样式统一维护于 `assets/css/contract.css`
+- 公共前端逻辑统一维护于 `assets/js/contract.js`
+- `index.html` 与 `sqlite/index.php` 共用同一套 CSS / JavaScript
+- SQLite 版继续保留服务器持久化能力
+- 后续修复打印、字段联动和表单行为时，不再需要同时修改两份前端代码
+
+---'''
+          if marker in readme:
+              readme = readme.replace(marker, replacement, 1)
+
+          tech_marker = '''不使用：
+
+- Node.js
+- npm
+- React
+- Vue
+- Laravel
+- MySQL
+- 构建工具
+
+---'''
+          tech_replacement = '''不使用：
+
+- Node.js
+- npm
+- React
+- Vue
+- Laravel
+- MySQL
+- 构建工具
+
+### 共享前端资源
+
+静态版与 SQLite 版现在共用：
+
+```text
+/assets/css/contract.css
+/assets/js/contract.js
+```
+
+两种页面只负责提供不同的数据保存环境：
+
+```text
+index.html
+→ LocalStorage
+
+sqlite/index.php
+→ LocalStorage + PHP + SQLite
+```
+
+这样后续修改表单逻辑、打印行为或样式时，只需要维护一套公共前端代码。
+
+---'''
+          if tech_marker in readme:
+              readme = readme.replace(tech_marker, tech_replacement, 1)
+
+          Path('README.md').write_text(readme, encoding='utf-8')
+
+          sqlite_readme = Path('sqlite/README.md').read_text(encoding='utf-8')
+          sqlite_readme = sqlite_readme.replace(
+              '''sqlite/
+          ├─ index.php
+          ├─ .htaccess
+          ├─ api/
+          │  ├─ bootstrap.php
+          │  ├─ load.php
+          │  └─ save.php
+          └─ database/
+             ├─ .htaccess
+             └─ index.html''',
+              '''网站部署目录/
+          ├─ index.php
+          ├─ .htaccess
+          ├─ assets/
+          │  ├─ css/
+          │  │  └─ contract.css
+          │  └─ js/
+          │     └─ contract.js
+          ├─ api/
+          │  ├─ bootstrap.php
+          │  ├─ load.php
+          │  └─ save.php
+          └─ database/
+             ├─ .htaccess
+             └─ index.html''',
+              1
+          )
+
+          old_deploy = '''将 `sqlite/` 目录中的全部内容上传到服务器目标目录，例如：
+
+```text
+/tools/website-contract/
+```
+
+上传后目录应类似：
+
+```text
+/tools/website-contract/
+├─ index.php
+├─ .htaccess
+├─ api/
+└─ database/
+```'''
+          new_deploy = '''SQLite 版从 v1.2.0 开始与静态版共用根目录 `assets/` 前端资源。
+
+部署到独立服务器目录时，请将：
+
+```text
+根目录 assets/
++
+sqlite/ 目录中的全部内容
+```
+
+一起放入服务器目标目录，例如：
+
+```text
+/tools/website-contract/
+├─ index.php
+├─ .htaccess
+├─ assets/
+├─ api/
+└─ database/
+```
+
+`index.php` 会自动判断共享资源位于当前目录的 `assets/`，还是仓库结构中的 `../assets/`，因此既支持仓库内开发，也支持独立目录部署。'''
+          if old_deploy in sqlite_readme:
+              sqlite_readme = sqlite_readme.replace(old_deploy, new_deploy, 1)
+
+          sqlite_readme += '''\n\n## v1.2.0 结构调整（开发中）\n\n- 静态版与 SQLite 版共用 `contract.css`\n- 静态版与 SQLite 版共用 `contract.js`\n- SQLite 专属差异通过页面运行模式与 API 配置处理\n- 后续前端样式和行为只维护一份，减少双版本重复修改\n'''
+
+          Path('sqlite/README.md').write_text(sqlite_readme, encoding='utf-8')
+
+      - name: Commit docs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md sqlite/README.md VERSION
+          git diff --cached --quiet && exit 0
+          git commit -m "docs: 同步 v1.1.3 与共享前端重构说明"
+          git push
