@@ -244,6 +244,19 @@
     padding-top:7px;
     font-weight: bold;
   }
+  #depositRate{
+    width:64px!important;
+    flex:0 0 64px;
+    text-align:center;
+  }
+  .amount-note{
+    column-gap:8px;
+  }
+  .amount-note textarea{
+    color:var(--text);
+    line-height:1.55;
+    text-align:left;
+  }
   .field-help{
     display:block;
     margin-top:5px;
@@ -501,8 +514,41 @@
       margin-right:2px;
     }
     .amount-box{padding:8px 10px;margin:6px 0}
-    .amount-note{grid-template-columns:110px 1fr!important;margin-top:5px!important}
-    .amount-note label{padding-top:0!important}
+    #depositRate{
+      width:42px!important;
+      min-width:42px!important;
+      max-width:42px!important;
+      flex:0 0 42px!important;
+      text-align:center!important;
+    }
+    .amount-box .inline-field{
+      justify-content:flex-start!important;
+    }
+    .amount-box .inline-field > span:last-child{
+      flex:0 0 auto!important;
+      margin-left:2px!important;
+    }
+    .amount-note{
+      grid-template-columns:80px minmax(0,1fr)!important;
+      column-gap:4px!important;
+      margin-top:5px!important;
+      align-items:start!important;
+    }
+    .amount-note label{
+      padding-top:0!important;
+      color:#000!important;
+      font-weight:700!important;
+      line-height:1.48!important;
+    }
+    .amount-note textarea{
+      color:#000!important;
+      font-size:9.6pt!important;
+      line-height:1.48!important;
+      margin:0!important;
+      padding:0!important;
+      text-indent:0!important;
+      vertical-align:top!important;
+    }
     .field-help{font-size:8.5pt!important;margin-top:2px!important}
 
     .clause h2{
