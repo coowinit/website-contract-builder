@@ -730,3 +730,20 @@
     margin: 6px 0 !important;
   }
 }
+
+
+/* v1.2.0 final main signature print layout */
+@media print {
+  .signature {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 32px !important;
+    align-items: start !important;
+    break-inside: avoid !important;
+  }
+
+  .signature .sign-line {
+    grid-template-columns: 72px 1fr !important;
+    gap: 8px !important;
+  }
+}

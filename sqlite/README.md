@@ -508,3 +508,11 @@ assets/css/contract.css
 - [ ] `database/contract.sqlite` 无法通过浏览器直接访问
 
 全部通过后再投入正式使用。
+
+
+## v1.2.0
+
+- 与静态版共用公共 CSS / JS
+- PHP 独立部署需同时复制 `assets/`
+- 使用资源版本号降低缓存干扰
+- 主合同签署区打印保持左右双列，字段简化为“签署人”
