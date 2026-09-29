@@ -707,3 +707,26 @@
     font-weight: 700 !important;
   }
 }
+
+
+/* v1.2.0 attachment confirmation two-column print */
+@media print {
+  .attachment-sign {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important;
+    align-items: start !important;
+    margin-top: 12px !important;
+    break-inside: avoid !important;
+  }
+
+  .attachment-sign > div {
+    min-width: 0 !important;
+  }
+
+  .attachment-sign .sign-line {
+    grid-template-columns: 62px 1fr !important;
+    gap: 6px !important;
+    margin: 6px 0 !important;
+  }
+}
