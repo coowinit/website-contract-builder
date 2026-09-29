@@ -693,3 +693,17 @@
     margin-left: 2px !important;
   }
 }
+
+
+/* v1.2.0 attachment title final style */
+.attachment-title {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+@media print {
+  .attachment-title {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+  }
+}
