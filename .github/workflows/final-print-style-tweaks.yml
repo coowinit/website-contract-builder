@@ -1,0 +1,63 @@
+name: Final print style tweaks
+
+on:
+  push:
+    paths:
+      - '.github/workflows/final-print-style-tweaks.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Append final print style overrides
+        run: |
+          cat >> assets/css/contract.css <<'EOF'
+
+/* v1.2.0 print refinements: attachment payment + confirmation spacing */
+@media print {
+  .project-info [data-key="payment.total2"] {
+    width: 72px !important;
+    min-width: 72px !important;
+    max-width: 72px !important;
+    margin: 0 2px !important;
+    text-align: left !important;
+  }
+
+  .project-info [data-key="payment.method"] {
+    width: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
+    margin-left: 4px !important;
+  }
+
+  .attachment .note + p {
+    margin-top: 14px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .attachment-sign {
+    margin-top: 10px !important;
+  }
+}
+EOF
+
+      - name: Validate CSS markers
+        run: |
+          grep -q 'payment.total2' assets/css/contract.css
+          grep -q '.attachment .note + p' assets/css/contract.css
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/css/contract.css
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: 优化附件付款与确认区域打印间距"
+          git push
