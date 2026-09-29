@@ -670,3 +670,26 @@
     margin-top: 10px !important;
   }
 }
+
+
+/* v1.2.0 payment print final alignment */
+@media print {
+  .project-info td:has([data-key="payment.total2"]) {
+    white-space: nowrap;
+  }
+
+  .project-info [data-key="payment.total2"] {
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+    margin: 0 !important;
+    text-align: left !important;
+  }
+
+  .project-info [data-key="payment.method"] {
+    width: 145px !important;
+    min-width: 145px !important;
+    max-width: 145px !important;
+    margin-left: 2px !important;
+  }
+}

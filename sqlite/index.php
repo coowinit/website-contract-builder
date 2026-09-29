@@ -7,7 +7,7 @@ $assetBase = is_dir(__DIR__ . '/assets') ? 'assets' : '../assets';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>网站建设合同生成器</title>
-<link rel="stylesheet" href="<?= htmlspecialchars($assetBase, ENT_QUOTES, 'UTF-8') ?>/css/contract.css">
+<link rel="stylesheet" href="<?= htmlspecialchars($assetBase, ENT_QUOTES, 'UTF-8') ?>/css/contract.css?v=1.2.0-20260929">
 </head>
 <body data-contract-mode="sqlite" data-storage-key="website_contract_builder_sqlite_v1" data-schema-version="2" data-api-load="api/load.php" data-api-save="api/save.php">
 <div class="app" id="app">
@@ -279,6 +279,6 @@ $assetBase = is_dir(__DIR__ . '/assets') ? 'assets' : '../assets';
   </main>
 </div>
 
-<script src="<?= htmlspecialchars($assetBase, ENT_QUOTES, 'UTF-8') ?>/js/contract.js"></script>
+<script src="<?= htmlspecialchars($assetBase, ENT_QUOTES, 'UTF-8') ?>/js/contract.js?v=1.2.0-20260929"></script>
 </body>
 </html>
