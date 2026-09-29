@@ -31,8 +31,8 @@ jobs:
           if a not in js: raise SystemExit('anchor b missing')
           js=js.replace(a,b,1)
 
-          a='''      if(e.target.matches('textarea[data-key="special.notes"]')) syncSpecialNotesPrint();\n      scheduleSave();'''
-          b='''      if(e.target.matches('textarea[data-key="special.notes"]')) syncSpecialNotesPrint();\n      if(printMirrorKeys.includes(e.target.dataset.key)) syncFieldPrintMirrors();\n      scheduleSave();'''
+          a='''    if(e.target.matches('textarea[data-key="special.notes"]')) syncSpecialNotesPrint();\n    scheduleSave();'''
+          b='''    if(e.target.matches('textarea[data-key="special.notes"]')) syncSpecialNotesPrint();\n    if(printMirrorKeys.includes(e.target.dataset.key)) syncFieldPrintMirrors();\n    scheduleSave();'''
           if a not in js: raise SystemExit('anchor c missing')
           js=js.replace(a,b,1)
 
