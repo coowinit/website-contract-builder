@@ -1,0 +1,53 @@
+name: Fix payment print layout
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-payment-print-layout.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch static and SQLite print layout
+        shell: python
+        run: |
+          from pathlib import Path
+
+          files = [Path('index.html'), Path('sqlite/index.php')]
+
+          for path in files:
+              text = path.read_text(encoding='utf-8')
+
+              # Normal screen: keep percentage field compact and note spacing aligned.
+              anchor = '''  .amount-note label{\n    padding-top:7px;\n    font-weight: bold;\n  }\n'''
+              add = anchor + '''  #depositRate{\n    width:64px!important;\n    flex:0 0 64px;\n    text-align:center;\n  }\n  .amount-note{\n    column-gap:8px;\n  }\n  .amount-note textarea{\n    color:var(--text);\n    line-height:1.55;\n    text-align:left;\n  }\n'''
+              if '#depositRate{' not in text:
+                  if anchor not in text:
+                      raise SystemExit(f'{path}: amount note anchor missing')
+                  text = text.replace(anchor, add, 1)
+
+              # Print: prevent the % from being pushed to the far right and tighten fee-note alignment.
+              old_print = '''    .amount-note{grid-template-columns:110px 1fr!important;margin-top:5px!important}\n    .amount-note label{padding-top:0!important}\n    .field-help{font-size:8.5pt!important;margin-top:2px!important}\n'''
+              new_print = '''    #depositRate{\n      width:42px!important;\n      min-width:42px!important;\n      max-width:42px!important;\n      flex:0 0 42px!important;\n      text-align:center!important;\n    }\n    .amount-box .inline-field{\n      justify-content:flex-start!important;\n    }\n    .amount-box .inline-field > span:last-child{\n      flex:0 0 auto!important;\n      margin-left:2px!important;\n    }\n    .amount-note{\n      grid-template-columns:80px minmax(0,1fr)!important;\n      column-gap:4px!important;\n      margin-top:5px!important;\n      align-items:start!important;\n    }\n    .amount-note label{\n      padding-top:0!important;\n      color:#000!important;\n      font-weight:700!important;\n      line-height:1.48!important;\n    }\n    .amount-note textarea{\n      color:#000!important;\n      font-size:9.6pt!important;\n      line-height:1.48!important;\n      margin:0!important;\n      padding:0!important;\n      text-indent:0!important;\n      vertical-align:top!important;\n    }\n    .field-help{font-size:8.5pt!important;margin-top:2px!important}\n'''
+              if old_print not in text:
+                  raise SystemExit(f'{path}: print amount rules missing')
+              text = text.replace(old_print, new_print, 1)
+
+              path.write_text(text, encoding='utf-8')
+
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html sqlite/index.php
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: 优化付款区域打印对齐与费用说明样式"
+          git push
